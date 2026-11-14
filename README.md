@@ -35,7 +35,7 @@ This mirrors the Swiss Job Radar's `submission_unknown` state. That state is a c
 
 ## A real failure: CitaLab N-R02
 
-CitaLab is a public, conversational assistant for synthetic healthcare appointments, evaluated in a master's thesis. In 9 of 12 episodes, a request to move an appointment ended with a new one, although every safety check passed. [The investigation](docs/investigations/citalab-r02.md) rebuilds those episodes as ReproLab traces, with every event citing its evidence. It keeps four levels apart: what the original logs show, what re-executing the evaluated code reproduces, what remains a hypothesis, and what is undetermined.
+[CitaLab](https://github.com/Andros5/citalab) is a public, conversational assistant for synthetic healthcare appointments, evaluated in a master's thesis. In 9 of 12 episodes, a request to move an appointment ended with a new one, although every safety check passed. [The investigation](docs/investigations/citalab-r02.md) rebuilds those episodes as ReproLab traces, with every event citing its evidence. It keeps four levels apart: what the original logs show, what re-executing the evaluated code reproduces, what remains a hypothesis, and what is undetermined.
 
 ```bash
 python -m examples.citalab_r02 --no-reexecute
