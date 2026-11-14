@@ -1,4 +1,8 @@
-"""Recordings on disk: one SQLite file, append-only runs of versioned events."""
+"""Recordings on disk: one SQLite file of append-only runs, and portable JSON documents.
+
+A run never changes once saved. Reducing a run saves a new run with origin "reduced"
+and its provenance; the original stays as it was recorded.
+"""
 
 from __future__ import annotations
 
@@ -6,11 +10,14 @@ import json
 import sqlite3
 import uuid
 from contextlib import closing
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from reprolab.events import SCHEMA_VERSION, Event
+from reprolab.events import (
+    READABLE_VERSIONS, SCHEMA_VERSION, Event, SchemaError, infer_deps, migrate_v1, validate_trace,
+)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs(
@@ -28,9 +35,76 @@ CREATE TABLE IF NOT EXISTS events(
 );
 """
 
+# Where a run comes from. H3 will add "reconstructed" for traces rebuilt from evidence.
+RECORDED = "recorded"  # an execution captured by a Session
+REDUCED = "reduced"  # a subset of another run's events; a trace, not an execution
+ORIGINS = (RECORDED, REDUCED)
+
+_META_FIELDS = ("origin", "target", "faults", "reduced_from", "extra")
+_REDUCED_FROM_FIELDS = ("run", "invariant", "anchor", "kept", "original_events", "tests", "seconds")
+
 
 class UnsupportedSchema(ValueError):
     pass
+
+
+@dataclass
+class Recording:
+    events: list[Event]
+    label: str = ""
+    origin: str = RECORDED
+    target: str | None = None  # "module:attribute" of the scenario that produced it
+    faults: list[dict[str, Any]] = field(default_factory=list)  # injection plan: {name, occurrence, kind}
+    reduced_from: dict[str, Any] | None = None  # provenance of a reduced run
+    extra: dict[str, Any] = field(default_factory=dict)  # free-form user metadata
+    id: str | None = None
+    created_at: str | None = None
+    stored_version: int = SCHEMA_VERSION  # schema version on disk (1 = migrated on read)
+
+    def validate(self) -> None:
+        if self.origin not in ORIGINS:
+            raise SchemaError(f"origin must be one of {list(ORIGINS)}, got {self.origin!r}")
+        if (self.origin == REDUCED) != (self.reduced_from is not None):
+            raise SchemaError("reduced_from is required for reduced runs and forbidden otherwise")
+        if self.reduced_from is not None and set(self.reduced_from) != set(_REDUCED_FROM_FIELDS):
+            raise SchemaError(f"reduced_from must have exactly {list(_REDUCED_FROM_FIELDS)}")
+        if self.target is not None and (not isinstance(self.target, str) or ":" not in self.target):
+            raise SchemaError("target must be null or 'module:attribute'")
+        for f in self.faults:
+            if not isinstance(f, dict) or set(f) != {"name", "occurrence", "kind"}:
+                raise SchemaError(f"fault plan entries are {{name, occurrence, kind}}, got {f!r}")
+        if not isinstance(self.extra, dict):
+            raise SchemaError("extra must be an object")
+        validate_trace(self.events, contiguous=self.origin == RECORDED)
+
+    def _meta(self) -> dict[str, Any]:
+        return {"origin": self.origin, "target": self.target, "faults": self.faults,
+                "reduced_from": self.reduced_from, "extra": self.extra}
+
+    # -- portable JSON document (export, fixtures) ----------------------------------
+
+    def to_doc(self) -> str:
+        doc = {
+            "schema_version": SCHEMA_VERSION,
+            "run": {"id": self.id, "created_at": self.created_at, "label": self.label, **self._meta()},
+            "events": [e.to_dict() for e in self.events],
+        }
+        return json.dumps(doc, sort_keys=True, ensure_ascii=False, indent=2) + "\n"
+
+    @classmethod
+    def from_doc(cls, text: str) -> "Recording":
+        doc = json.loads(text)
+        if not isinstance(doc, dict) or set(doc) != {"schema_version", "run", "events"}:
+            raise SchemaError("a recording document has exactly: schema_version, run, events")
+        if doc["schema_version"] != SCHEMA_VERSION:
+            raise UnsupportedSchema(f"document uses schema v{doc['schema_version']}; "
+                                    f"documents are read in v{SCHEMA_VERSION}")
+        run = doc["run"]
+        if not isinstance(run, dict) or set(run) != {"id", "created_at", "label", *_META_FIELDS}:
+            raise SchemaError(f"run header fields must be id, created_at, label, {', '.join(_META_FIELDS)}")
+        rec = cls(events=[Event.from_dict(e) for e in doc["events"]], **run)
+        rec.validate()
+        return rec
 
 
 def _connect(path: str | Path) -> sqlite3.Connection:
@@ -39,36 +113,64 @@ def _connect(path: str | Path) -> sqlite3.Connection:
     return db
 
 
-def save_run(path: str | Path, events: list[Event], *, label: str = "", meta: dict[str, Any] | None = None) -> str:
+def save_run(path: str | Path, recording: Recording) -> str:
+    """Validate and store a recording; returns its new run id."""
+    recording.validate()
     run_id = uuid.uuid4().hex[:12]
+    created = datetime.now(timezone.utc).isoformat(timespec="seconds")
     with closing(_connect(path)) as db, db:
-        db.execute(
-            "INSERT INTO runs VALUES(?,?,?,?,?)",
-            (run_id, datetime.now(timezone.utc).isoformat(), label, SCHEMA_VERSION,
-             json.dumps(meta or {}, sort_keys=True, ensure_ascii=False)),
-        )
-        db.executemany("INSERT INTO events VALUES(?,?,?)", [(run_id, e.seq, e.to_json()) for e in events])
+        db.execute("INSERT INTO runs VALUES(?,?,?,?,?)",
+                   (run_id, created, recording.label, SCHEMA_VERSION,
+                    json.dumps(recording._meta(), sort_keys=True, ensure_ascii=False)))
+        db.executemany("INSERT INTO events VALUES(?,?,?)",
+                       [(run_id, e.seq, e.to_json()) for e in recording.events])
+    recording.id, recording.created_at, recording.stored_version = run_id, created, SCHEMA_VERSION
     return run_id
 
 
-def load_run(path: str | Path, run_id: str) -> tuple[dict[str, Any], list[Event]]:
+def resolve_id(path: str | Path, ref: str) -> str:
+    """Accept a full run id or a unique prefix of one."""
     with closing(_connect(path)) as db:
-        row = db.execute("SELECT label, schema_version, meta FROM runs WHERE id=?", (run_id,)).fetchone()
-        if row is None:
-            raise KeyError(f"No run {run_id!r} in {path}")
-        label, version, meta = row
-        if version != SCHEMA_VERSION:
-            raise UnsupportedSchema(f"Run {run_id} uses event schema v{version}; this ReproLab reads v{SCHEMA_VERSION}")
-        events = [Event.from_json(b) for (b,) in db.execute(
+        ids = [i for (i,) in db.execute("SELECT id FROM runs WHERE id LIKE ? || '%'", (ref,))]
+    if len(ids) == 1:
+        return ids[0]
+    if not ids:
+        raise KeyError(f"No run {ref!r} in {path}")
+    raise KeyError(f"Run prefix {ref!r} is ambiguous in {path}: {', '.join(sorted(ids))}")
+
+
+def load_run(path: str | Path, ref: str) -> Recording:
+    run_id = resolve_id(path, ref)
+    with closing(_connect(path)) as db:
+        created, label, version, meta = db.execute(
+            "SELECT created_at, label, schema_version, meta FROM runs WHERE id=?", (run_id,)).fetchone()
+        bodies = [json.loads(b) for (b,) in db.execute(
             "SELECT body FROM events WHERE run_id=? ORDER BY seq", (run_id,))]
-    return {"label": label, **json.loads(meta)}, events
+    if version not in READABLE_VERSIONS:
+        raise UnsupportedSchema(f"Run {run_id} uses event schema v{version}; this ReproLab reads "
+                                f"v{', v'.join(map(str, READABLE_VERSIONS))}")
+    meta = json.loads(meta)
+    if version == 1:
+        events = infer_deps(Event.from_dict(migrate_v1(b)) for b in bodies)
+        faults = meta.pop("faults", [])
+        rec = Recording(events=events, label=label, faults=faults, extra=meta)
+    else:
+        if set(meta) != set(_META_FIELDS):
+            raise SchemaError(f"run {run_id}: metadata fields must be {list(_META_FIELDS)}")
+        rec = Recording(events=[Event.from_dict(b) for b in bodies], label=label, **meta)
+    rec = replace(rec, id=run_id, created_at=created, stored_version=version)
+    rec.validate()
+    return rec
 
 
 def list_runs(path: str | Path) -> list[dict[str, Any]]:
     with closing(_connect(path)) as db:
-        return [
-            {"id": i, "created_at": c, "label": l, "events": n}
-            for i, c, l, n in db.execute(
-                "SELECT r.id, r.created_at, r.label, COUNT(e.seq) FROM runs r "
-                "LEFT JOIN events e ON e.run_id=r.id GROUP BY r.id ORDER BY r.created_at")
-        ]
+        rows = db.execute(
+            "SELECT r.id, r.created_at, r.label, r.schema_version, r.meta, COUNT(e.seq) FROM runs r "
+            "LEFT JOIN events e ON e.run_id=r.id GROUP BY r.id ORDER BY r.created_at, r.rowid").fetchall()
+    out = []
+    for i, c, label, version, meta, n in rows:
+        meta = json.loads(meta)
+        out.append({"id": i, "created_at": c, "label": label, "schema_version": version, "events": n,
+                    "origin": meta.get("origin", RECORDED), "target": meta.get("target")})
+    return out

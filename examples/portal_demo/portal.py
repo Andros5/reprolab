@@ -12,6 +12,11 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
+# Synthetic job postings. No real company or person is involved.
+JOBS = {
+    "job-42": {"job": "job-42", "title": "Data Engineer (synthetic posting)", "company": "Example Analytics AG"},
+}
+
 
 class Portal:
     def __init__(self) -> None:
@@ -58,6 +63,9 @@ class Portal:
 
             def do_GET(self):
                 url = urlparse(self.path)
+                if url.path.startswith("/jobs/"):
+                    job = JOBS.get(url.path.removeprefix("/jobs/"))
+                    return self._send(200, job) if job else self._send(404, {"error": "no such job"})
                 if url.path != "/applications":
                     return self._send(404, {"error": "not found"})
                 q = {k: v[0] for k, v in parse_qs(url.query).items()}

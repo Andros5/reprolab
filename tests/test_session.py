@@ -4,7 +4,7 @@ import pytest
 
 from reprolab import (
     EFFECT_NONE, EFFECT_UNKNOWN, LOST_RESPONSE, RATE_LIMITED, BoundaryError, Fault, NetworkBlocked,
-    ReplayDivergence, Session, load_run, list_runs, no_network, save_run,
+    Recording, ReplayDivergence, Session, load_run, list_runs, no_network, save_run,
 )
 from reprolab.store import UnsupportedSchema
 
@@ -33,7 +33,8 @@ def test_lost_response_runs_the_call_and_reports_unknown_effect():
     assert calls == [{}]  # the side effect happened
     assert err.value.effect == EFFECT_UNKNOWN
     event = rec.finish()[0]
-    assert event.fault == LOST_RESPONSE and event.error["type"] == "LostResponse"
+    assert event.fault == {"kind": LOST_RESPONSE, "simulated": True}
+    assert event.error["type"] == "LostResponse"
 
 
 def test_rate_limit_does_not_run_the_call_and_reports_no_effect():
@@ -94,9 +95,11 @@ def test_store_round_trip(tmp_path):
         rec.call("svc", {"x": "ñ"}, echo)
     events = rec.finish()
     db = tmp_path / "runs.db"
-    run_id = save_run(db, events, label="demo", meta={"k": 1})
-    meta, loaded = load_run(db, run_id)
-    assert loaded == events and meta == {"label": "demo", "k": 1}
+    run_id = save_run(db, Recording(events, label="demo", target="m:a", faults=[{"name": "svc", "occurrence": 1,
+                                                                             "kind": LOST_RESPONSE}], extra={"k": 1}))
+    loaded = load_run(db, run_id[:6])  # a unique prefix is enough
+    assert loaded.events == events and loaded.id == run_id
+    assert (loaded.label, loaded.target, loaded.extra, loaded.origin) == ("demo", "m:a", {"k": 1}, "recorded")
     assert list_runs(db)[0]["events"] == 1
 
 
@@ -104,7 +107,7 @@ def test_store_rejects_unknown_schema_versions(tmp_path):
     import sqlite3
 
     db = tmp_path / "runs.db"
-    run_id = save_run(db, [])
+    run_id = save_run(db, Recording([]))
     with sqlite3.connect(db) as c:
         c.execute("UPDATE runs SET schema_version=99")
     with pytest.raises(UnsupportedSchema):
@@ -116,3 +119,45 @@ def test_no_network_blocks_connections_and_restores_them():
         with pytest.raises(NetworkBlocked):
             socket.create_connection(("127.0.0.1", 9))
     assert socket.create_connection is not None and "refuse" not in socket.create_connection.__name__
+
+
+# -- dependencies and operations -----------------------------------------------------
+
+def test_values_flowing_from_earlier_events_become_dependencies():
+    rec = Session.record()
+    tok = rec.token()
+    found = rec.call("lookup", {}, lambda r: {"ref": "order-12345", "n": 1})
+    rec.call("pay", {"idempotency": tok, "order": found["ref"], "n": 1}, echo)
+    rec.call("ping", {"n": 1, "short": "ok"}, echo)  # small ints and short strings never link
+    events = rec.finish()
+    assert [e.deps for e in events] == [(), (), (1, 2), ()]
+
+
+def test_clock_readings_link_by_value_and_explicit_deps_are_kept():
+    rec = Session.record()
+    t = rec.now()
+    rec.call("log", {"at": t}, echo)
+    rec.call("after_log", {}, echo, deps=[rec.last_seq])  # control dependency, declared by hand
+    events = rec.finish()
+    assert [e.deps for e in events] == [(), (1,), (2,)]
+    with pytest.raises(ValueError):
+        Session.record().call("x", {}, echo, deps=[1])  # cannot depend on the future
+
+
+def test_operation_groups_events_and_replay_checks_it():
+    rec = Session.record()
+    with rec.operation("checkout"):
+        rec.call("svc", {}, echo)
+    rec.call("svc", {}, echo)
+    events = rec.finish()
+    assert [e.op for e in events] == ["checkout", None]
+    rep = Session.replay(events)
+    with pytest.raises(ReplayDivergence, match="Operation differs"):
+        rep.call("svc", {}, echo)  # same call outside its recorded operation
+
+
+def test_fault_parse():
+    assert Fault.parse("portal.submit:2:rate_limited") == Fault("portal.submit", 2, RATE_LIMITED)
+    for bad in ("portal.submit:x:lost_response", "submit:1", "submit:1:explode"):
+        with pytest.raises(ValueError):
+            Fault.parse(bad)

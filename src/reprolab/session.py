@@ -18,10 +18,14 @@ from __future__ import annotations
 
 import time
 import uuid
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Iterable, Iterator
 
-from reprolab.events import CALL, CLOCK, EFFECT_NONE, EFFECT_UNKNOWN, RANDOM, Event, normalize
+from reprolab.events import (
+    CALL, CLOCK, EFFECT_NONE, EFFECT_UNKNOWN, FAULT_KINDS, LOST_RESPONSE, RANDOM, RATE_LIMITED,
+    DependencyTracker, Event, normalize,
+)
 
 RECORD = "record"
 REPLAY = "replay"
@@ -48,11 +52,7 @@ class ReplayDivergence(AssertionError):
     """The code under replay did something the recording does not contain."""
 
 
-# Faults. Each simulates what a caller would observe; the simulation is explicit in
-# the recording (Event.fault), so a reader never mistakes it for a real incident.
-LOST_RESPONSE = "lost_response"  # the call runs and takes effect, the response is lost
-RATE_LIMITED = "rate_limited"  # the call is rejected before acting (HTTP 429)
-FAULTS = {LOST_RESPONSE, RATE_LIMITED}
+FAULTS = set(FAULT_KINDS)
 
 
 @dataclass(frozen=True)
@@ -68,6 +68,18 @@ class Fault:
             raise ValueError(f"Unknown fault {self.kind!r}; known: {sorted(FAULTS)}")
         if self.occurrence < 1:
             raise ValueError("occurrence is 1-based")
+
+    @classmethod
+    def parse(cls, text: str) -> "Fault":
+        """Parse ``name:occurrence:kind``, for example ``portal.submit:1:lost_response``."""
+        try:
+            name, occurrence, kind = text.rsplit(":", 2)
+            return cls(name, int(occurrence), kind)
+        except ValueError as exc:
+            raise ValueError(f"Bad fault {text!r}: expected name:occurrence:kind ({exc})") from None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"name": self.name, "occurrence": self.occurrence, "kind": self.kind}
 
 
 def _classify(exc: Exception) -> BoundaryError:
@@ -90,6 +102,8 @@ class Session:
         self.classify = classify
         self._cursor = 0
         self._calls_by_name: dict[str, int] = {}
+        self._deps = DependencyTracker()
+        self._op: str | None = None
 
     @classmethod
     def record(cls, faults: list[Fault] | None = None, **kwargs) -> "Session":
@@ -99,9 +113,26 @@ class Session:
     def replay(cls, events: list[Event]) -> "Session":
         return cls(REPLAY, events=events)
 
+    @property
+    def last_seq(self) -> int:
+        """Seq of the latest event, to declare an explicit dependency on it."""
+        return len(self.events) if self.mode == RECORD else self._cursor
+
+    @contextmanager
+    def operation(self, op_id: str) -> Iterator[None]:
+        """Group the events inside the block under one business operation id."""
+        previous, self._op = self._op, op_id
+        try:
+            yield
+        finally:
+            self._op = previous
+
     # -- boundaries -------------------------------------------------------------------
 
-    def call(self, name: str, request: Any, fn: Callable[[Any], Any], *, kind: str = "http") -> Any:
+    def call(self, name: str, request: Any, fn: Callable[[Any], Any], *, kind: str = "http",
+             deps: Iterable[int] = ()) -> Any:
+        """Cross a boundary. ``deps`` adds explicit dependencies (seqs of earlier events)
+        to the ones inferred from the values in ``request``."""
         request = normalize(request)
         if self.mode == REPLAY:
             event = self._next(CALL, name, request)
@@ -112,6 +143,8 @@ class Session:
 
         count = self._calls_by_name[name] = self._calls_by_name.get(name, 0) + 1
         fault = next((f.kind for f in self.faults if f.name == name and f.occurrence == count), None)
+        mark = {"kind": fault, "simulated": True} if fault else None
+        all_deps = set(deps) | self._deps.deps_of(request)
         try:
             if fault == RATE_LIMITED:
                 raise BoundaryError("RateLimited", "HTTP 429 injected by ReproLab", EFFECT_NONE)
@@ -121,9 +154,10 @@ class Session:
                                     EFFECT_UNKNOWN)
         except Exception as exc:  # noqa: BLE001 - every failure becomes a recorded outcome
             error = self.classify(exc)
-            self._append(CALL, name, kind=kind, request=request, outcome=error.as_outcome(), fault=fault)
+            self._append(CALL, name, kind=kind, request=request, outcome=error.as_outcome(), fault=mark,
+                         deps=all_deps)
             raise error from (None if exc is error else exc)
-        self._append(CALL, name, kind=kind, request=request, outcome={"ok": result}, fault=fault)
+        self._append(CALL, name, kind=kind, request=request, outcome={"ok": result}, fault=mark, deps=all_deps)
         return result
 
     def now(self) -> float:
@@ -152,8 +186,14 @@ class Session:
 
     # -- internals ----------------------------------------------------------------
 
-    def _append(self, type_: str, name: str, **fields: Any) -> None:
-        self.events.append(Event(seq=len(self.events) + 1, type=type_, name=name, **fields))
+    def _append(self, type_: str, name: str, *, deps: Iterable[int] = (), **fields: Any) -> None:
+        seq = len(self.events) + 1
+        bad = [d for d in deps if not 1 <= d < seq]
+        if bad:
+            raise ValueError(f"Dependencies must be earlier events (1..{seq - 1}), got {bad}")
+        event = Event(seq=seq, type=type_, name=name, deps=tuple(sorted(set(deps))), op=self._op, **fields)
+        self.events.append(event)
+        self._deps.produced(seq, event.outcome)
 
     def _next(self, type_: str, name: str, request: Any = None) -> Event:
         if self._cursor >= len(self.events):
@@ -163,5 +203,7 @@ class Session:
             raise ReplayDivergence(f"Expected {event.describe()}, but the code made {type_} {name!r}")
         if type_ == CALL and event.request != request:
             raise ReplayDivergence(f"Request differs at #{event.seq} {name}: recorded {event.request!r}, now {request!r}")
+        if event.op != self._op:
+            raise ReplayDivergence(f"Operation differs at #{event.seq} {name}: recorded {event.op!r}, now {self._op!r}")
         self._cursor += 1
         return event
