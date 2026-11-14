@@ -1,5 +1,7 @@
 # Demo video script (about 3 minutes)
 
+A finished, 101-second motion version with no voice-over is attached to the [v1.0.0 release](https://github.com/Andros5/reprolab/releases/tag/v1.0.0). Its source is in [video/](../../video/). The script below is for a live, narrated demo, for example in an interview.
+
 Record the terminal on one half of the screen and the generated page on the other. Commands assume the repository root with the virtual environment active. Every result shown is computed live; nothing is staged.
 
 | Time | Screen | Say |

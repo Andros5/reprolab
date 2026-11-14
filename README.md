@@ -1,8 +1,14 @@
 # ReproLab
 
+[![Checks](https://github.com/Andros5/reprolab/actions/workflows/ci.yml/badge.svg)](https://github.com/Andros5/reprolab/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Andros5/reprolab)](https://github.com/Andros5/reprolab/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Record, replay and reduce failures of agent and automation workflows, and turn them into regression tests for business properties.
 
-**Status:** milestones H1–H5 complete. Python standard library and SQLite, no external services.
+**Status:** version 1.0.0, milestones H1–H5 complete. Python standard library and SQLite, no external services.
+
+**[Watch the 101-second demo video](https://github.com/Andros5/reprolab/releases/download/v1.0.0/reprolab-demo.mp4)**. It has no voice-over, and every trace and number in it comes from real runs. It was made with code in [video/](video/).
 
 ```bash
 python -m examples.showcase        # runs every case live and writes showcase.html: one page, no dependencies
@@ -169,3 +175,7 @@ These numbers describe these cases only; they are not a benchmark.
 | H3 | A documented investigation of a real agent failure (CitaLab), separating original evidence from reconstructions ✅ |
 | H4 | A bounded explorer of fault schedules over the boundaries, with seeded scenarios, reduced counterexamples and metrics ✅ |
 | H5 | Visual comparison and differential replay against a new version of the code, detecting the recordings that stop being compatible ✅ |
+
+## Licence
+
+Code: [MIT](LICENSE). The CitaLab evidence in `examples/citalab_r02/data/` is synthetic data under CC BY 4.0, copied verbatim with attribution. The demo video's music is “Ethereal” by Amarent, under CC BY 4.0 (see [video/README.md](video/README.md)).
