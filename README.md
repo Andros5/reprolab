@@ -2,7 +2,19 @@
 
 Record, replay and reduce failures of agent and automation workflows, and turn them into regression tests for business properties.
 
-**Status:** v1 (milestones H1–H4). Python standard library and SQLite, no external services.
+**Status:** milestones H1–H5 complete. Python standard library and SQLite, no external services.
+
+```bash
+python -m examples.showcase        # runs every case live and writes showcase.html: one page, no dependencies
+```
+
+| Read | For |
+|---|---|
+| [Architecture](docs/architecture.md) | The pieces and how one failure flows through them |
+| [Design decisions](docs/design-decisions.md) | Three choices, their alternatives and the evidence they paid off |
+| [CitaLab investigation](docs/investigations/citalab-r02.md) | A real agent failure, from the logs |
+| [Measured results](docs/metrics.md) | Seeded regressions, determinism, instrumentation overhead |
+| [Pitch](docs/interview/pitch.md) · [demo script](docs/interview/demo-script.md) | The project in 30 seconds, 2 minutes and 3 minutes |
 
 ## The demo
 
@@ -60,6 +72,28 @@ The explorer runs a scenario under many fault schedules against the real local p
 - `reconciling` is correct within one process but forgets an uncertain submission when the worker crashes.
 - `journaled` records "pending" durably before submitting and reconciles on restart, like the Swiss Job Radar's `submission_unknown`.
 
+## Old failures as tests for new code
+
+```bash
+reprolab regress --target examples.portal_demo.scenario:journaled
+reprolab html <run> --compare <new-run> --ignore-nondeterminism
+```
+
+`regress` replays every stored recording against a new version of the code:
+
+- **Compatible.** A recording the new code still matches replays offline and gives its verdict.
+- **Incompatible.** A recording it no longer matches is marked *incompatible from event #k*, with the reason. It is then recorded again under the same fault plan, against the local environment.
+
+Each recording gets a verdict: **fixed**, **still failing**, **regressed** or **still passing**. The command exits with 1 while anything still fails, so the library of past incidents can gate a build. When it compares old and new traces, random tokens and clock readings are matched by order of appearance, so the first difference it reports is a change in behaviour, not a new random id.
+
+`html` draws any run as a flight-recorder strip:
+
+- solid marks are observed, diagonal hatching marks a simulated fault, and a dashed outline marks an event reconstructed from logs;
+- arcs in the margin are dependencies;
+- clicking an event shows its request, outcome and evidence.
+
+It also draws two runs side by side from their first divergence, and a reduction with the dropped events faded.
+
 ## Command line
 
 ```bash
@@ -71,6 +105,8 @@ reprolab replay <run>           # re-run the recorded code offline; exit 1 on di
 reprolab reduce <run>           # saves a new, reduced run; the original is kept
 reprolab diff <run-a> <run-b>   # first event where two runs diverge, and whether the request or only the answer differs
 reprolab explore <target> --seed 0 --budget 200 [--max-faults 2] [--kinds ...] [--report out.json]
+reprolab regress --target <new-target> [--from <old-target>] [--runs a,b] [--report out.json]
+reprolab html <run> [--compare <run>] [--ignore-nondeterminism] [-o page.html]
 reprolab export <run> -o run.json
 ```
 
@@ -86,6 +122,7 @@ Runs are stored in `./reprolab.db` (or `--db`, or `$REPROLAB_DB`). A run can be 
 - **Replay.** In replay mode nothing external runs. Each call must match the next recorded event, or a `ReplayDivergence` explains the difference. Recorded outcomes are returned or raised again.
 - **Invariants.** Invariants read only the trace, so the original run and every replay get the same verdict. The portal's real state serves as a separate oracle while recording.
 - **First divergence.** `diff` compares two runs event by event. It reports where they first differ: a different call, the same call with a different request, or the same request with a different answer. The last case is the signature of non-determinism on the other side of the boundary.
+- **Differential replay.** `regress` replays stored recordings against new code, says where each stops matching, and re-records the incompatible ones under the same faults.
 - **Exploration.** See [the explorer](#finding-failures-the-explorer): bounded, seeded, coverage-guided schedules of injected faults, with counterexamples reduced by re-execution.
 - **Reduction.** Delta debugging (ddmin) over the events of a trace. Each candidate is closed under dependencies, so an event is never kept without the events it uses. A candidate is accepted only if the same invariant is still violated **at the same event**, so the search cannot slide to a different failure. The result is saved as a new run with `origin: reduced` and its provenance.
 
@@ -117,6 +154,7 @@ These numbers describe these cases only; they are not a benchmark.
 - Inferred dependencies follow data flow only. Control flow must be declared explicitly.
 - A reduced trace is **1-minimal, not a global minimum**: removing any one remaining event, together with what depends on it, loses the violation.
 - A reconstructed run is only as good as the logs it comes from. Derived events say which rule produced them, and `replay` refuses such runs: they are replayed by re-executing the original system's code through an adapter.
+- `regress` re-applies a recording's faults by call name and occurrence. If the new code calls differently, a planned fault can land on a different step or not fire at all, so the report lists the faults planned and the faults that fired.
 - `diff` compares values exactly. Provider-generated ids count as differences, so the first difference it reports can be noise and has to be read.
 - A reduced trace is **a trace, not an execution**. It isolates what the property needs to see and serves as a regression fixture, but the original code would not necessarily produce it, so `replay` refuses it. The explorer's reduction of fault schedules does re-execute, so its minimal counterexamples are real runs.
 - The explorer covers the schedules it reports and nothing else. A clean exploration is not a proof of correctness. Faults are injected only at instrumented boundaries, and only into scenarios that can run against a local environment; CitaLab, for example, would need real model calls.
@@ -130,4 +168,4 @@ These numbers describe these cases only; they are not a benchmark.
 | H2 | Stable versioned schema, a record/replay CLI, and a reduction that keeps the same violated property ✅ |
 | H3 | A documented investigation of a real agent failure (CitaLab), separating original evidence from reconstructions ✅ |
 | H4 | A bounded explorer of fault schedules over the boundaries, with seeded scenarios, reduced counterexamples and metrics ✅ |
-| H5 | Visual comparison and differential replay against a new version of the code |
+| H5 | Visual comparison and differential replay against a new version of the code, detecting the recordings that stop being compatible ✅ |

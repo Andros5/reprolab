@@ -37,6 +37,7 @@ from typing import Any, Callable, Iterable
 
 from reprolab import scenario as rl
 from reprolab.events import CALL, FAULT_KINDS, RESTART, Event
+from reprolab.invariants import Violation
 from reprolab.reduce import reduce_violation
 from reprolab.scenario import Outcome, Scenario
 from reprolab.session import Fault
@@ -97,6 +98,8 @@ class Counterexample:
     trace_events: int | None = None
     reduced_events: int | None = None
     run_ids: dict[str, str] = field(default_factory=dict)
+    events: list[Event] = field(default_factory=list)  # the minimal run, for viewing
+    violations: list[Violation] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {"category": self.category, "signature": self.signature, "message": self.message,
@@ -304,6 +307,7 @@ def explore(scenario: Scenario, *, seed: int = 0, budget: int = 100, max_faults:
             c.minimal = c.schedule
         finding = next(f for f in classify(scenario, out) if f.signature == signature)
         c.trace_events = len(out.events)
+        c.events, c.violations = list(out.events), list(out.violations)
         reduced = None
         if reduce and finding.category == PROPERTY:
             invariant = signature.split(" at ")[0]

@@ -73,8 +73,38 @@ def _paths(x: Any, y: Any, prefix: str = "", limit: int = 6) -> list[tuple[str, 
     return [(prefix or "/", (x, y))]
 
 
-def first_divergence(a: list[Event], b: list[Event]) -> Divergence | None:
-    """The first position where two traces differ, or None if they are identical."""
+def _substitute(value: Any, names: dict[tuple[str, Any], str]) -> Any:
+    if isinstance(value, dict):
+        return {k: _substitute(v, names) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_substitute(v, names) for v in value]
+    key = (type(value).__name__, value)
+    return names.get(key, value) if isinstance(value, (str, float)) else value
+
+
+def normalize_nondeterminism(events: list[Event]) -> list[Event]:
+    """Replace the values of random and clock events by placeholders numbered in order of
+    appearance (``<random 1>``, ``<clock 2>``), wherever those values reappear.
+
+    Two runs that differ only in their randomness and timing then compare equal, and a
+    value that flows from a token into a request is still compared by its role."""
+    names: dict[tuple[str, Any], str] = {}
+    counts = {"random": 0, "clock": 0}
+    for e in events:
+        if e.type in counts and e.ok and isinstance(e.outcome["ok"], (str, float)):
+            counts[e.type] += 1
+            names.setdefault((type(e.outcome["ok"]).__name__, e.outcome["ok"]), f"<{e.type} {counts[e.type]}>")
+    return [Event(**{**e.to_dict(), "deps": tuple(e.deps), "request": _substitute(e.request, names),
+                     "outcome": _substitute(e.outcome, names)}) for e in events]
+
+
+def first_divergence(a: list[Event], b: list[Event], *, ignore_nondeterminism: bool = False) -> Divergence | None:
+    """The first position where two traces differ, or None if they are identical.
+
+    With ``ignore_nondeterminism``, random tokens and clock readings are compared by
+    their order of appearance rather than their values (see ``normalize_nondeterminism``)."""
+    if ignore_nondeterminism:
+        a, b = normalize_nondeterminism(a), normalize_nondeterminism(b)
     for i, (x, y) in enumerate(zip(a, b)):
         if (x.type, x.name, x.kind) != (y.type, y.name, y.kind):
             return Divergence(i, DIFFERENT_CALL, x, y)
