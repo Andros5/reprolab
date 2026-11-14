@@ -1,4 +1,4 @@
-"""Command line: reprolab record | replay | show | list | reduce | diff | explore | export.
+"""Command line: reprolab record | replay | show | list | reduce | diff | explore | regress | html | export.
 
 Runs are stored in one SQLite file: --db, else $REPROLAB_DB, else ./reprolab.db.
 """
@@ -17,9 +17,10 @@ from reprolab.events import FAULT_KINDS, SCHEMA_VERSION, Event
 from reprolab.explore import PROPERTY, explore
 from reprolab.invariants import Violation, check
 from reprolab.reduce import NotReproduced, reduce_violation
+from reprolab.regress import regress
 from reprolab.scenario import Scenario, load_target, record, replay
 from reprolab.session import Fault, ReplayDivergence
-from reprolab.store import RECONSTRUCTED, REDUCED, Recording, list_runs, load_run, save_run
+from reprolab.store import RECONSTRUCTED, RECORDED, REDUCED, Recording, list_runs, load_run, save_run
 
 DEFAULT_DB = "reprolab.db"
 
@@ -151,7 +152,7 @@ def cmd_diff(args: argparse.Namespace) -> int:
     a, b = load_run(args.db, args.a), load_run(args.db, args.b)
     print(f"A: run {a.id}  {a.label!r} ({len(a.events)} events)")
     print(f"B: run {b.id}  {b.label!r} ({len(b.events)} events)")
-    divergence = first_divergence(a.events, b.events)
+    divergence = first_divergence(a.events, b.events, ignore_nondeterminism=args.ignore_nondeterminism)
     if divergence is None:
         print("identical traces")
         return 0
@@ -173,6 +174,79 @@ def cmd_explore(args: argparse.Namespace) -> int:
         print(f"wrote {args.report}")
     # Exit 1 when a business property was violated, so an exploration can gate a build.
     return 1 if any(c.category == PROPERTY for c in report.counterexamples) else 0
+
+
+def cmd_regress(args: argparse.Namespace) -> int:
+    new = load_target(args.target)
+    if args.runs:
+        ids = [r.strip() for r in args.runs.split(",") if r.strip()]
+    else:
+        ids = [r["id"] for r in list_runs(args.db) if r["origin"] == RECORDED
+               and (args.from_target is None or r["target"] == args.from_target)
+               and not r["label"].startswith("regress ")]
+    if not ids:
+        raise CliError("no recorded runs to replay; record some first or pass --runs", code=1)
+    results = []
+    for ref in ids:
+        rec = load_run(args.db, ref)
+        r = regress(rec, new, args.target, rerecord=not args.no_rerecord)
+        if r.rerecorded:
+            r.note = (r.note + "; " if r.note else "") + "new run " + save_run(args.db, Recording(
+                r.new_events, label=f"regress {rec.id} under {args.target}", target=args.target,
+                faults=rec.faults, extra={"regress_of": rec.id}))
+        results.append(r)
+        print(r.describe())
+    counts: dict[str, int] = {}
+    for r in results:
+        counts[r.verdict] = counts.get(r.verdict, 0) + 1
+    compatible = sum(r.compatibility == "compatible" for r in results)
+    print(f"{len(results)} recordings against {args.target}: {compatible} still compatible offline; "
+          + ", ".join(f"{n} {v}" for v, n in sorted(counts.items())))
+    if args.report:
+        Path(args.report).write_text(json.dumps([r.to_dict() for r in results], indent=2, ensure_ascii=False)
+                                     + "\n", encoding="utf-8", newline="\n")
+        print(f"wrote {args.report}")
+    # Exit 1 while any recorded failure still fails, or a passing one now fails.
+    return 1 if any(r.gate_fails for r in results) else 0
+
+
+def _invariants_for(rec: Recording, override: str | None) -> list:
+    try:
+        return list(_scenario_for(rec, override).invariants)
+    except (CliError, ImportError, ValueError):
+        return []
+
+
+def cmd_html(args: argparse.Namespace) -> int:
+    from reprolab import html as H
+
+    rec = load_run(args.db, args.run)
+    invariants = _invariants_for(rec, args.target)
+    if args.compare:
+        other = load_run(args.db, args.compare)
+        divergence = first_divergence(rec.events, other.events, ignore_nondeterminism=args.ignore_nondeterminism)
+        content = H.compare_view(rec.events, other.events, divergence, title_a=f"A · {rec.id} · {rec.label}",
+                                 title_b=f"B · {other.id} · {other.label}",
+                                 violations_a=check(rec.events, invariants),
+                                 violations_b=check(other.events, _invariants_for(other, args.target)))
+        sections = [("compare", "first divergence", f"{rec.id} and {other.id}", content)]
+    elif rec.origin == REDUCED and rec.reduced_from:
+        original = load_run(args.db, rec.reduced_from["run"])
+        anchor, name = rec.reduced_from["anchor"], rec.reduced_from["invariant"]
+        violation = next((v for v in check(rec.events, invariants) if v.seq == anchor and v.invariant == name), None)
+        if violation is None:
+            raise CliError(f"cannot re-check {name} at #{anchor} on run {rec.id}; pass --target", code=1)
+        content = H.reduction_view(original.events, rec.events, violation, title=f"{original.id} · {original.label}")
+        sections = [("reduction", "reduction", f"{rec.id}: {len(original.events)} to {len(rec.events)} events", content)]
+    else:
+        violations = check(rec.events, invariants)
+        content = H.verdict_line(violations) + H.run_view(rec.events, violations, title=rec.label or rec.id,
+                                                          meta=f"{rec.origin} · {rec.target or 'no target'}")
+        sections = [("run", rec.origin, f"Run {rec.id}", content)]
+    out = Path(args.output or f"reprolab-{rec.id}.html")
+    out.write_text(H.page(f"Trace {rec.id}", sections), encoding="utf-8", newline="\n")
+    print(f"wrote {out}")
+    return 0
 
 
 def cmd_export(args: argparse.Namespace) -> int:
@@ -221,7 +295,18 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("diff", help="find the first event where two runs diverge, and how")
     s.add_argument("a")
     s.add_argument("b")
+    s.add_argument("--ignore-nondeterminism", action="store_true",
+                   help="compare random tokens and clock readings by order of appearance, not value")
     s.set_defaults(fn=cmd_diff)
+
+    s = sub.add_parser("regress", help="replay stored recordings against a new version of the code")
+    s.add_argument("--target", required=True, help="the new code, as module:attribute")
+    s.add_argument("--from", dest="from_target", help="only recordings of this target (default: all recorded runs)")
+    s.add_argument("--runs", help="comma-separated run ids or prefixes (default: all matching recorded runs)")
+    s.add_argument("--no-rerecord", action="store_true",
+                   help="do not re-record incompatible recordings under their fault plan")
+    s.add_argument("--report", help="write the results as JSON to this file")
+    s.set_defaults(fn=cmd_regress)
 
     s = sub.add_parser("explore", help="run a scenario under many fault schedules and reduce what fails")
     s.add_argument("target", help="scenario as module:attribute")
@@ -235,6 +320,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--no-reduce", action="store_true", help="keep the first schedule of each finding as is")
     s.add_argument("--no-save", action="store_true", help="do not store counterexample runs")
     s.set_defaults(fn=cmd_explore)
+
+    s = sub.add_parser("html", help="write a visual HTML view of a run, a comparison or a reduction")
+    s.add_argument("run")
+    s.add_argument("--compare", metavar="RUN", help="show this run side by side, from the first divergence")
+    s.add_argument("--ignore-nondeterminism", action="store_true")
+    s.add_argument("--target", help="scenario whose invariants to check (default: the recorded target)")
+    s.add_argument("-o", "--output", help="output file (default: reprolab-<run>.html)")
+    s.set_defaults(fn=cmd_html)
 
     s = sub.add_parser("export", help="write a run as a portable JSON document")
     s.add_argument("run")

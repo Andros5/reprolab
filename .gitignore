@@ -7,3 +7,6 @@ build/
 dist/
 *.db
 .venv-citalab/
+showcase.html
+.claude/
+reprolab-*.html

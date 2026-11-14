@@ -49,7 +49,15 @@ class BoundaryError(Exception):
 
 
 class ReplayDivergence(AssertionError):
-    """The code under replay did something the recording does not contain."""
+    """The code under replay did something the recording does not contain.
+
+    ``seq`` is the recorded event where replay stopped matching (None when the code went
+    past the end of the recording); ``reproduced`` is how many events matched before."""
+
+    def __init__(self, message: str, seq: int | None = None, reproduced: int = 0):
+        super().__init__(message)
+        self.seq = seq
+        self.reproduced = reproduced
 
 
 class WorkerCrash(BaseException):
@@ -221,7 +229,7 @@ class Session:
             rest = self.events[self._cursor]
             raise ReplayDivergence(
                 f"The run ended but the recording continues at {rest.describe()} "
-                f"({len(self.events) - self._cursor} events not reproduced)")
+                f"({len(self.events) - self._cursor} events not reproduced)", rest.seq, self._cursor)
         return list(self.events)
 
     # -- internals ----------------------------------------------------------------
@@ -237,13 +245,17 @@ class Session:
 
     def _next(self, type_: str, name: str, request: Any = None) -> Event:
         if self._cursor >= len(self.events):
-            raise ReplayDivergence(f"The code made an extra {type_} {name!r} that the recording does not contain")
+            raise ReplayDivergence(f"The code made an extra {type_} {name!r} that the recording does not contain",
+                                   None, self._cursor)
         event = self.events[self._cursor]
         if (event.type, event.name) != (type_, name):
-            raise ReplayDivergence(f"Expected {event.describe()}, but the code made {type_} {name!r}")
+            raise ReplayDivergence(f"Expected {event.describe()}, but the code made {type_} {name!r}",
+                                   event.seq, self._cursor)
         if type_ == CALL and event.request != request:
-            raise ReplayDivergence(f"Request differs at #{event.seq} {name}: recorded {event.request!r}, now {request!r}")
+            raise ReplayDivergence(f"Request differs at #{event.seq} {name}: recorded {event.request!r}, now {request!r}",
+                                   event.seq, self._cursor)
         if event.op != self._op:
-            raise ReplayDivergence(f"Operation differs at #{event.seq} {name}: recorded {event.op!r}, now {self._op!r}")
+            raise ReplayDivergence(f"Operation differs at #{event.seq} {name}: recorded {event.op!r}, now {self._op!r}",
+                                   event.seq, self._cursor)
         self._cursor += 1
         return event
