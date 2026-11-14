@@ -1,0 +1,510 @@
+{
+  "faults": [
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "none",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.click:1:lost_response",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.click:1:rate_limited",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 0,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.click:1:timeout",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 0,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.click:1:duplicate",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 2,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.click:1:invalid_output",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.click:1:crash_after",
+      "state": "sending",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 3,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.confirmation:1:lost_response",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.confirmation:1:rate_limited",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.confirmation:1:timeout",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.confirmation:1:duplicate",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.confirmation:1:invalid_output",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 3,
+      "refusal": [
+        "Se necesita una aprobación vigente",
+        "Se requiere un comprobante"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_worker_restart",
+      "fault": "portal.confirmation:1:crash_after",
+      "state": "sending",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 3,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "none",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.click:1:lost_response",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.click:1:rate_limited",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 0,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.click:1:timeout",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 0,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.click:1:duplicate",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 2,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.click:1:invalid_output",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.click:1:crash_after",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 3,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.confirmation:1:lost_response",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.confirmation:1:rate_limited",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.confirmation:1:timeout",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 2,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.confirmation:1:duplicate",
+      "state": "submitted",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 0,
+      "refusal": [],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.confirmation:1:invalid_output",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 3,
+      "refusal": [
+        "Se necesita una aprobación vigente",
+        "Se requiere un comprobante"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    },
+    {
+      "scenario": "radar_web_restart",
+      "fault": "portal.confirmation:1:crash_after",
+      "state": "submission_unknown",
+      "began": 1,
+      "portal_received": 1,
+      "refused_resends": 3,
+      "refusal": [
+        "Se necesita una aprobación vigente"
+      ],
+      "clicks": 1,
+      "violations": 0,
+      "replays": true
+    }
+  ],
+  "reconcile": {
+    "after_worker_restart": "sending",
+    "reconcile_while_web_kept_running": {
+      "status": 409,
+      "detail": "El envío no está pendiente de conciliación"
+    },
+    "after_web_restart": "submission_unknown",
+    "reconcile_after_web_restart": {
+      "status": 200,
+      "state": "needs_review"
+    },
+    "send_after_reconcile": "refused: Se necesita una aprobación vigente",
+    "portal_received": 1
+  },
+  "explore": {
+    "radar_worker_restart": {
+      "target": "examples.radar_submit.scenario:worker_restart",
+      "seed": 0,
+      "budget": 300,
+      "max_faults": 2,
+      "kinds": [
+        "lost_response",
+        "rate_limited",
+        "timeout",
+        "duplicate",
+        "invalid_output",
+        "crash_after"
+      ],
+      "runs": 240,
+      "seconds": 79.06,
+      "runs_per_second": 3.0,
+      "reduction_seconds": 0.0,
+      "sites": [
+        "portal.click#1",
+        "portal.click#2",
+        "portal.confirmation#1",
+        "portal.confirmation#2"
+      ],
+      "explored": {
+        "1": 24,
+        "2": 216
+      },
+      "space": {
+        "1": 24,
+        "2": 216
+      },
+      "exhausted": true,
+      "counterexamples": [],
+      "caveat": "Only the schedules above were tried: a finding is a reproducible counterexample, but no finding does not show the system is correct."
+    },
+    "radar_web_restart": {
+      "target": "examples.radar_submit.scenario:web_restart",
+      "seed": 0,
+      "budget": 300,
+      "max_faults": 2,
+      "kinds": [
+        "lost_response",
+        "rate_limited",
+        "timeout",
+        "duplicate",
+        "invalid_output",
+        "crash_after"
+      ],
+      "runs": 240,
+      "seconds": 78.652,
+      "runs_per_second": 3.1,
+      "reduction_seconds": 0.0,
+      "sites": [
+        "portal.click#1",
+        "portal.click#2",
+        "portal.confirmation#1",
+        "portal.confirmation#2"
+      ],
+      "explored": {
+        "1": 24,
+        "2": 216
+      },
+      "space": {
+        "1": 24,
+        "2": 216
+      },
+      "exhausted": true,
+      "counterexamples": [],
+      "caveat": "Only the schedules above were tried: a finding is a reproducible counterexample, but no finding does not show the system is correct."
+    },
+    "radar_rearm_control": {
+      "target": "examples.radar_submit.scenario:rearm_control",
+      "seed": 0,
+      "budget": 300,
+      "max_faults": 2,
+      "kinds": [
+        "lost_response",
+        "rate_limited",
+        "timeout",
+        "duplicate",
+        "invalid_output",
+        "crash_after"
+      ],
+      "runs": 300,
+      "seconds": 71.522,
+      "runs_per_second": 4.2,
+      "reduction_seconds": 0.148,
+      "sites": [
+        "portal.click#1",
+        "portal.click#2",
+        "portal.confirmation#1",
+        "portal.confirmation#2",
+        "portal.click#3",
+        "portal.confirmation#3",
+        "portal.click#4",
+        "portal.confirmation#4"
+      ],
+      "explored": {
+        "1": 48,
+        "2": 252
+      },
+      "space": {
+        "1": 48,
+        "2": 1008
+      },
+      "exhausted": false,
+      "counterexamples": [
+        {
+          "category": "property",
+          "signature": "no-resend-after-uncertain-outcome at portal.click",
+          "message": "[no-resend-after-uncertain-outcome] at event #2: clicks submit again after the unconfirmed click at #1, without reconciling",
+          "first_run": 1,
+          "first_seconds": 0.358,
+          "schedule": "portal.click:1:lost_response",
+          "hits": 138,
+          "minimal_schedule": "portal.click:1:lost_response",
+          "faults_before": 1,
+          "faults_after": 1,
+          "reexecutions": 1,
+          "trace_events": 3,
+          "reduced_events": 2,
+          "run_ids": {}
+        }
+      ],
+      "caveat": "Only the schedules above were tried: a finding is a reproducible counterexample, but no finding does not show the system is correct."
+    }
+  },
+  "adapter_lines": {
+    "adapter.py": {
+      "total": 260,
+      "code": 153
+    },
+    "invariants.py": {
+      "total": 38,
+      "code": 24
+    },
+    "scenario.py": {
+      "total": 116,
+      "code": 43
+    }
+  }
+}
