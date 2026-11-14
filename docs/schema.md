@@ -19,10 +19,27 @@ that document. A change that breaks any of these is a schema change and needs a 
 | `kind` | `http` \| `llm` \| `tool` \| `user`, or `""` | Kind of call; empty for clock and random. `user` is a message or action from a person or a simulated person. |
 | `request` | JSON value, or `null` | What the code sent. Always `null` for clock and random. |
 | `outcome` | `{"ok": value}` \| `{"error": {type, message, effect}}` | What the code observed. Only calls can fail. |
-| `fault` | `null` \| `{"kind": ..., "simulated": true}` | Fault injected by ReproLab on this call. `simulated` is always `true`: a reader never mistakes an injected fault for a real incident. Kinds: `lost_response`, `rate_limited`. |
+| `fault` | `null` \| `{"kind": ..., "simulated": true}` | Fault injected by ReproLab on this call. `simulated` is always `true`: a reader never mistakes an injected fault for a real incident. Kinds: see [Faults](#faults). |
 | `deps` | sorted list of earlier `seq` | Events this one depends on. |
 | `op` | string \| `null` | Business operation the event belongs to (`session.operation(...)`). |
 | `evidence` | `null` \| `{sources, rule}` | Where an imported event comes from. `null` for events a `Session` observed itself. |
+
+### Faults
+
+| Kind | Does the call run? | What the caller sees |
+|---|---|---|
+| `lost_response` | yes | error `LostResponse`, effect `unknown` |
+| `rate_limited` | no | error `RateLimited` (HTTP 429), effect `none` |
+| `timeout` | no | error `Timeout`, effect `unknown`: the caller cannot tell it from a lost response |
+| `duplicate` | twice | the first response; the second delivery takes effect unseen |
+| `invalid_output` | yes | the output emptied (`{}`, `[]` or `null`) |
+| `crash_after` | yes | nothing: the worker dies. The event records error `WorkerCrash`, effect `unknown` |
+
+After `crash_after` the scenario runner starts the code again with the same durable
+environment and an empty memory, and records a call `worker.restart` (kind `tool`, request
+`null`, depending on the crashed call). Replay raises the crash and restarts at the same
+points. The last four kinds were added in H4, before any v3 reader was released; a reader
+that predates them would refuse the new kinds rather than misread them.
 
 ### Evidence
 

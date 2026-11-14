@@ -7,7 +7,7 @@ from reprolab.invariants import Violation, check
 from reprolab.netguard import NetworkBlocked, no_network
 from reprolab.reduce import NotReproduced, Reduction, reduce_trace, reduce_violation
 from reprolab.scenario import Outcome, Scenario, load_target
-from reprolab.session import BoundaryError, Fault, ReplayDivergence, Session
+from reprolab.session import BoundaryError, Fault, ReplayDivergence, Session, WorkerCrash
 from reprolab.store import RECONSTRUCTED, REDUCED, RECORDED, Recording, UnsupportedSchema, list_runs, load_run, save_run
 
 __all__ = [
@@ -15,6 +15,6 @@ __all__ = [
     "Violation", "check", "NetworkBlocked", "no_network",
     "NotReproduced", "Reduction", "reduce_trace", "reduce_violation",
     "Outcome", "Scenario", "load_target",
-    "BoundaryError", "Fault", "ReplayDivergence", "Session",
+    "BoundaryError", "Fault", "ReplayDivergence", "Session", "WorkerCrash",
     "RECONSTRUCTED", "REDUCED", "RECORDED", "Recording", "UnsupportedSchema", "list_runs", "load_run", "save_run",
 ]

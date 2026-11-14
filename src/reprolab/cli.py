@@ -1,4 +1,4 @@
-"""Command line: reprolab record | replay | show | list | reduce | export.
+"""Command line: reprolab record | replay | show | list | reduce | diff | explore | export.
 
 Runs are stored in one SQLite file: --db, else $REPROLAB_DB, else ./reprolab.db.
 """
@@ -6,13 +6,15 @@ Runs are stored in one SQLite file: --db, else $REPROLAB_DB, else ./reprolab.db.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
 from typing import Sequence
 
 from reprolab.diff import first_divergence
-from reprolab.events import SCHEMA_VERSION, Event
+from reprolab.events import FAULT_KINDS, SCHEMA_VERSION, Event
+from reprolab.explore import PROPERTY, explore
 from reprolab.invariants import Violation, check
 from reprolab.reduce import NotReproduced, reduce_violation
 from reprolab.scenario import Scenario, load_target, record, replay
@@ -158,6 +160,21 @@ def cmd_diff(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_explore(args: argparse.Namespace) -> int:
+    scenario = load_target(args.target)
+    kinds = tuple(k.strip() for k in args.kinds.split(",")) if args.kinds else FAULT_KINDS
+    report = explore(scenario, seed=args.seed, budget=args.budget, max_faults=args.max_faults, kinds=kinds,
+                     extra_occurrences=args.extra_occurrences, reduce=not args.no_reduce, target=args.target,
+                     db=None if args.no_save else args.db)
+    print(report.describe())
+    if args.report:
+        Path(args.report).write_text(json.dumps(report.to_dict(), indent=2, ensure_ascii=False) + "\n",
+                                     encoding="utf-8", newline="\n")
+        print(f"wrote {args.report}")
+    # Exit 1 when a business property was violated, so an exploration can gate a build.
+    return 1 if any(c.category == PROPERTY for c in report.counterexamples) else 0
+
+
 def cmd_export(args: argparse.Namespace) -> int:
     doc = load_run(args.db, args.run).to_doc()
     if args.output:
@@ -205,6 +222,19 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("a")
     s.add_argument("b")
     s.set_defaults(fn=cmd_diff)
+
+    s = sub.add_parser("explore", help="run a scenario under many fault schedules and reduce what fails")
+    s.add_argument("target", help="scenario as module:attribute")
+    s.add_argument("--seed", type=int, default=0, help="orders the random part of the search (default 0)")
+    s.add_argument("--budget", type=int, default=200, help="schedules to run, not counting the baseline")
+    s.add_argument("--max-faults", type=int, default=2, help="faults per schedule (default 2)")
+    s.add_argument("--kinds", help=f"comma-separated fault kinds (default: all of {', '.join(FAULT_KINDS)})")
+    s.add_argument("--extra-occurrences", type=int, default=1,
+                   help="also target this many occurrences beyond the last one seen (default 1)")
+    s.add_argument("--report", help="write the report as JSON to this file")
+    s.add_argument("--no-reduce", action="store_true", help="keep the first schedule of each finding as is")
+    s.add_argument("--no-save", action="store_true", help="do not store counterexample runs")
+    s.set_defaults(fn=cmd_explore)
 
     s = sub.add_parser("export", help="write a run as a portable JSON document")
     s.add_argument("run")
