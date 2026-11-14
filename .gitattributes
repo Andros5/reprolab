@@ -1,0 +1,3 @@
+# Evidence and frozen fixtures are compared byte for byte: never convert line endings.
+examples/citalab_r02/data/** -text
+tests/fixtures/** -text

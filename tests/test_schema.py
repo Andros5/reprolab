@@ -1,4 +1,5 @@
-"""Schema v2 is stable: a recording made today is read, written and replayed the same way."""
+"""The schema is stable: a recording made today is read, written and replayed the same way,
+and recordings from earlier versions are migrated on read."""
 
 import json
 import sqlite3
@@ -12,7 +13,9 @@ from reprolab import (
 )
 from reprolab import scenario as rl
 
-GOLDEN = Path(__file__).parent / "fixtures" / "blind_retry_full.v2.json"
+FIXTURES = Path(__file__).parent / "fixtures"
+GOLDEN = FIXTURES / "blind_retry_full.v3.json"
+GOLDEN_V2 = FIXTURES / "blind_retry_full.v2.json"  # the same run, exported by H2
 
 
 def golden() -> Recording:
@@ -22,6 +25,12 @@ def golden() -> Recording:
 def test_golden_document_round_trips_byte_for_byte():
     text = GOLDEN.read_text(encoding="utf-8")
     assert golden().to_doc() == text
+
+
+def test_v2_document_migrates_to_exactly_the_v3_golden():
+    old = Recording.from_doc(GOLDEN_V2.read_text(encoding="utf-8"))
+    assert old.stored_version == 2 and all(e.evidence is None for e in old.events)
+    assert old.to_doc() == GOLDEN.read_text(encoding="utf-8")
 
 
 def test_golden_recording_still_replays_with_the_current_code():
@@ -43,7 +52,7 @@ def test_golden_marks_injected_faults_as_simulated():
 
 def _event(**changes):
     base = {"seq": 2, "type": "call", "name": "svc", "kind": "http", "request": {}, "outcome": {"ok": 1},
-            "fault": None, "deps": [1], "op": None}
+            "fault": None, "deps": [1], "op": None, "evidence": None}
     return {**base, **changes}
 
 
@@ -62,6 +71,10 @@ def _event(**changes):
     (_event(type="clock", kind="", request=None, outcome={"error": {"type": "X", "message": "", "effect": "none"}}),
      "cannot fail"),
     (_event(op=""), "op must be"),
+    (_event(evidence={"sources": []}), "evidence must be"),
+    (_event(evidence={"sources": [], "rule": None}), "exactly one source"),
+    (_event(evidence={"sources": [{"source": "f", "pointer": "/0"}], "rule": None}), "source, pointer, sha256"),
+    (_event(evidence={"sources": [], "rule": ""}), "rule must be"),
 ])
 def test_strict_validation_rejects_malformed_events(data, message):
     with pytest.raises(SchemaError, match=message):
@@ -83,7 +96,7 @@ def test_recorded_runs_are_contiguous_and_reduced_runs_keep_their_dependencies()
 def test_document_with_another_version_or_unknown_header_is_rejected():
     doc = json.loads(GOLDEN.read_text(encoding="utf-8"))
     with pytest.raises(UnsupportedSchema):
-        Recording.from_doc(json.dumps({**doc, "schema_version": 3}))
+        Recording.from_doc(json.dumps({**doc, "schema_version": 4}))
     with pytest.raises(SchemaError, match="run header"):
         Recording.from_doc(json.dumps({**doc, "run": {**doc["run"], "colour": "red"}}))
 
@@ -114,3 +127,18 @@ def test_v1_runs_written_by_h1_are_migrated_on_read(tmp_path):
     assert check(rec.events, list(INVARIANTS)) == []  # one submission alone violates nothing
     with pytest.raises(ReplayDivergence, match="extra random"):
         rl.replay(blind_retry, rec.events)  # the H1 client retries; this recording stops: divergence
+
+
+def _cite(seq):
+    return {"sources": [{"source": "log.jsonl:1", "pointer": f"/events/{seq}", "sha256": "ab" * 32}], "rule": None}
+
+
+def test_evidence_must_match_the_origin_of_the_run():
+    from dataclasses import replace
+    events = golden().events
+    with pytest.raises(SchemaError, match="no external evidence"):
+        Recording([replace(events[0], evidence=_cite(1)), *events[1:]]).validate()
+    cited = [replace(e, evidence=_cite(e.seq)) for e in events]
+    Recording(cited, origin="reconstructed").validate()
+    with pytest.raises(SchemaError, match=r"must cite its evidence; missing at \[2\]"):
+        Recording([cited[0], events[1], *cited[2:]], origin="reconstructed").validate()

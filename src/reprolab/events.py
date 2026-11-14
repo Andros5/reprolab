@@ -1,4 +1,4 @@
-"""The event model (schema v2): what a run observed at its instrumented boundaries.
+"""The event model (schema v3): what a run observed at its instrumented boundaries.
 
 A run is an ordered list of events. Replay feeds the recorded outcomes back to the code
 instead of contacting the outside world, so everything that can differ between two
@@ -14,15 +14,15 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Iterator
 
-SCHEMA_VERSION = 2
-READABLE_VERSIONS = (1, 2)  # v1 recordings are migrated on read
+SCHEMA_VERSION = 3
+READABLE_VERSIONS = (1, 2, 3)  # older recordings are migrated on read
 
 # Event types
 CALL = "call"  # a call across a boundary: HTTP request, LLM call, tool call
 CLOCK = "clock"  # a reading of the wall clock
 RANDOM = "random"  # a random token
 EVENT_TYPES = (CALL, CLOCK, RANDOM)
-CALL_KINDS = ("http", "llm", "tool")
+CALL_KINDS = ("http", "llm", "tool", "user")  # "user": a message or action from a (simulated) person
 
 # What an error tells the caller about side effects on the other side.
 EFFECT_NONE = "none"  # the request certainly had no effect (rejected before acting)
@@ -39,7 +39,8 @@ FAULT_KINDS = (LOST_RESPONSE, RATE_LIMITED)
 # a later request links the two. Only distinctive values count (see _distinctive).
 MIN_DISTINCTIVE_LENGTH = 8
 
-_EVENT_FIELDS = ("seq", "type", "name", "kind", "request", "outcome", "fault", "deps", "op")
+_EVENT_FIELDS = ("seq", "type", "name", "kind", "request", "outcome", "fault", "deps", "op", "evidence")
+_SOURCE_FIELDS = ("source", "pointer", "sha256")
 
 
 class SchemaError(ValueError):
@@ -63,6 +64,10 @@ class Event:
     fault: dict[str, Any] | None = None  # {"kind": ..., "simulated": True} if injected
     deps: tuple[int, ...] = ()  # seqs of earlier events this one depends on
     op: str | None = None  # business operation this event belongs to, if any
+    # Where an imported event comes from (null for events a Session observed itself):
+    # {"sources": [{"source", "pointer", "sha256"}], "rule": null} when copied verbatim
+    # from one place, or {"sources": [...], "rule": "..."} when derived by that rule.
+    evidence: dict[str, Any] | None = None
 
     @property
     def ok(self) -> bool:
@@ -73,6 +78,10 @@ class Event:
         return self.outcome.get("error")
 
     @property
+    def reconstructed(self) -> bool:
+        return bool(self.evidence and self.evidence["rule"])
+
+    @property
     def fault_kind(self) -> str | None:
         return self.fault["kind"] if self.fault else None
 
@@ -80,7 +89,7 @@ class Event:
         return {
             "seq": self.seq, "type": self.type, "name": self.name, "kind": self.kind,
             "request": self.request, "outcome": self.outcome, "fault": self.fault,
-            "deps": list(self.deps), "op": self.op,
+            "deps": list(self.deps), "op": self.op, "evidence": self.evidence,
         }
 
     def to_json(self) -> str:
@@ -110,6 +119,8 @@ class Event:
             head += f"  [simulated fault: {self.fault['kind']}]"
         if self.deps:
             head += "  <- " + " ".join(f"#{d}" for d in self.deps)
+        if self.reconstructed:
+            head += "  [reconstructed]"
         return head
 
 
@@ -174,6 +185,26 @@ def validate_event_dict(data: Any) -> None:
         _fail(where, "deps must be sorted, unique, and refer to earlier events")
     if data["op"] is not None and (not isinstance(data["op"], str) or not data["op"]):
         _fail(where, "op must be null or a non-empty string")
+    _validate_evidence(where, data["evidence"])
+
+
+def _validate_evidence(where: str, evidence: Any) -> None:
+    if evidence is None:
+        return
+    if not isinstance(evidence, dict) or set(evidence) != {"sources", "rule"}:
+        _fail(where, "evidence must be null or {sources, rule}")
+    sources, rule = evidence["sources"], evidence["rule"]
+    if not isinstance(sources, list):
+        _fail(where, "evidence sources must be a list")
+    for src in sources:
+        if not isinstance(src, dict) or set(src) != set(_SOURCE_FIELDS) or not all(
+                isinstance(src[k], str) and src[k] for k in ("source", "sha256")) or not isinstance(src["pointer"], str):
+            _fail(where, "each evidence source is {source, pointer, sha256}")
+    if rule is None:
+        if len(sources) != 1:
+            _fail(where, "verbatim evidence (rule: null) has exactly one source")
+    elif not isinstance(rule, str) or not rule:
+        _fail(where, "evidence rule must be null or a non-empty string")
 
 
 def _validate_outcome(where: str, type_: str, outcome: Any) -> None:
@@ -259,8 +290,15 @@ def infer_deps(events: Iterable[Event]) -> list[Event]:
     return out
 
 
+def migrate_v2(body: dict[str, Any]) -> dict[str, Any]:
+    """Turn a v2 event body into v3: events a Session observed have no external evidence."""
+    if not isinstance(body, dict) or "evidence" in body:
+        raise SchemaError(f"not a v2 event: {body!r}")
+    return {**body, "evidence": None}
+
+
 def migrate_v1(body: dict[str, Any]) -> dict[str, Any]:
-    """Turn a v1 event body into v2. Dependencies are inferred afterwards by the caller."""
+    """Turn a v1 event body into v3. Dependencies are inferred afterwards by the caller."""
     known = {"seq", "type", "name", "kind", "request", "outcome", "fault"}
     if not isinstance(body, dict) or not set(body) <= known:
         raise SchemaError(f"not a v1 event: {body!r}")
@@ -268,5 +306,5 @@ def migrate_v1(body: dict[str, Any]) -> dict[str, Any]:
     return {
         "seq": body["seq"], "type": body["type"], "name": body.get("name", ""), "kind": body.get("kind", ""),
         "request": body.get("request"), "outcome": body.get("outcome", {}),
-        "fault": {"kind": fault, "simulated": True} if fault else None, "deps": [], "op": None,
+        "fault": {"kind": fault, "simulated": True} if fault else None, "deps": [], "op": None, "evidence": None,
     }

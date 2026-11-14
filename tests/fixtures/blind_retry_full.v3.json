@@ -1,0 +1,313 @@
+{
+  "events": [
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "now",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": 1794615106.8354018
+      },
+      "request": null,
+      "seq": 1,
+      "type": "clock"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "http",
+      "name": "portal.job",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": {
+          "company": "Example Analytics AG",
+          "job": "job-42",
+          "title": "Data Engineer (synthetic posting)"
+        }
+      },
+      "request": {
+        "job": "job-42"
+      },
+      "seq": 2,
+      "type": "call"
+    },
+    {
+      "deps": [
+        2
+      ],
+      "evidence": null,
+      "fault": null,
+      "kind": "llm",
+      "name": "llm.draft_cover_letter",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": {
+          "text": "Dear hiring team, synthetic-candidate-1 would like to apply for the role of Data Engineer (synthetic posting). (synthetic draft)"
+        }
+      },
+      "request": {
+        "candidate": "synthetic-candidate-1",
+        "title": "Data Engineer (synthetic posting)"
+      },
+      "seq": 3,
+      "type": "call"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "token",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": "76c28e3be4e644578610e4f78cafd052"
+      },
+      "request": null,
+      "seq": 4,
+      "type": "random"
+    },
+    {
+      "deps": [
+        3,
+        4
+      ],
+      "evidence": null,
+      "fault": {
+        "kind": "lost_response",
+        "simulated": true
+      },
+      "kind": "http",
+      "name": "portal.submit",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "error": {
+          "effect": "unknown",
+          "message": "response lost after the request was processed (injected)",
+          "type": "LostResponse"
+        }
+      },
+      "request": {
+        "candidate": "synthetic-candidate-1",
+        "cover_letter": "Dear hiring team, synthetic-candidate-1 would like to apply for the role of Data Engineer (synthetic posting). (synthetic draft)",
+        "job": "job-42",
+        "request_id": "76c28e3be4e644578610e4f78cafd052"
+      },
+      "seq": 5,
+      "type": "call"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "now",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": 1794615106.8781612
+      },
+      "request": null,
+      "seq": 6,
+      "type": "clock"
+    },
+    {
+      "deps": [
+        6
+      ],
+      "evidence": null,
+      "fault": null,
+      "kind": "tool",
+      "name": "telemetry.log",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": {
+          "logged": true
+        }
+      },
+      "request": {
+        "at": 1794615106.8781612,
+        "error": "LostResponse",
+        "event": "submit_failed"
+      },
+      "seq": 7,
+      "type": "call"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "token",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": "570279b6d70344419fc4d5e72f0927a7"
+      },
+      "request": null,
+      "seq": 8,
+      "type": "random"
+    },
+    {
+      "deps": [
+        3,
+        8
+      ],
+      "evidence": null,
+      "fault": {
+        "kind": "rate_limited",
+        "simulated": true
+      },
+      "kind": "http",
+      "name": "portal.submit",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "error": {
+          "effect": "none",
+          "message": "HTTP 429 injected by ReproLab",
+          "type": "RateLimited"
+        }
+      },
+      "request": {
+        "candidate": "synthetic-candidate-1",
+        "cover_letter": "Dear hiring team, synthetic-candidate-1 would like to apply for the role of Data Engineer (synthetic posting). (synthetic draft)",
+        "job": "job-42",
+        "request_id": "570279b6d70344419fc4d5e72f0927a7"
+      },
+      "seq": 9,
+      "type": "call"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "now",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": 1794615106.878339
+      },
+      "request": null,
+      "seq": 10,
+      "type": "clock"
+    },
+    {
+      "deps": [
+        10
+      ],
+      "evidence": null,
+      "fault": null,
+      "kind": "tool",
+      "name": "telemetry.log",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": {
+          "logged": true
+        }
+      },
+      "request": {
+        "at": 1794615106.878339,
+        "error": "RateLimited",
+        "event": "submit_failed"
+      },
+      "seq": 11,
+      "type": "call"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "token",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": "f191293876964bfdbee6c2dc4fc9575e"
+      },
+      "request": null,
+      "seq": 12,
+      "type": "random"
+    },
+    {
+      "deps": [
+        3,
+        12
+      ],
+      "evidence": null,
+      "fault": null,
+      "kind": "http",
+      "name": "portal.submit",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": {
+          "id": 2
+        }
+      },
+      "request": {
+        "candidate": "synthetic-candidate-1",
+        "cover_letter": "Dear hiring team, synthetic-candidate-1 would like to apply for the role of Data Engineer (synthetic posting). (synthetic draft)",
+        "job": "job-42",
+        "request_id": "f191293876964bfdbee6c2dc4fc9575e"
+      },
+      "seq": 13,
+      "type": "call"
+    },
+    {
+      "deps": [],
+      "evidence": null,
+      "fault": null,
+      "kind": "",
+      "name": "now",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": 1794615106.8797874
+      },
+      "request": null,
+      "seq": 14,
+      "type": "clock"
+    },
+    {
+      "deps": [
+        14
+      ],
+      "evidence": null,
+      "fault": null,
+      "kind": "tool",
+      "name": "telemetry.log",
+      "op": "apply:synthetic-candidate-1:job-42",
+      "outcome": {
+        "ok": {
+          "logged": true
+        }
+      },
+      "request": {
+        "at": 1794615106.8797874,
+        "event": "finished",
+        "state": "submitted"
+      },
+      "seq": 15,
+      "type": "call"
+    }
+  ],
+  "run": {
+    "created_at": "2026-11-14T00:11:47+00:00",
+    "extra": {},
+    "faults": [
+      {
+        "kind": "lost_response",
+        "name": "portal.submit",
+        "occurrence": 1
+      },
+      {
+        "kind": "rate_limited",
+        "name": "portal.submit",
+        "occurrence": 2
+      }
+    ],
+    "id": "e2d651531e07",
+    "label": "golden fixture: blind_retry_full, lost response then rate limit",
+    "origin": "recorded",
+    "reduced_from": null,
+    "target": "examples.portal_demo.scenario:blind_retry_full"
+  },
+  "schema_version": 3
+}
