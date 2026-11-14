@@ -123,7 +123,116 @@ def apply_reconciling(session: Session, client, candidate: str, job: str, attemp
     return {"state": "failed"}
 
 
-IMPLEMENTATIONS = {"blind_retry": apply_blind_retry, "reconciling": apply_reconciling}
+# -- Seeded variants for the explorer (H4) ----------------------------------------------
+# Each is a plausible implementation with a known label, so the explorer's results can be
+# scored: does it find the defective ones, and does it stay quiet on the correct one?
+
+
+def apply_retry_on_find_error(session: Session, client, candidate: str, job: str, attempts: int = 3, *,
+                              extra: dict | None = None, on_error: OnError | None = None) -> dict[str, Any]:
+    """Defective: reconciles after an uncertain outcome, but if the lookup itself fails it
+    retries the submission instead of stopping."""
+    for _ in range(attempts):
+        try:
+            return {"state": "submitted", "id": _submit(session, client, candidate, job, extra)["id"]}
+        except BoundaryError as error:
+            if error.effect == EFFECT_NONE:
+                continue
+            try:
+                found = session.call(FIND, {"candidate": candidate, "job": job}, client.find)["applications"]
+            except BoundaryError:
+                continue  # defect: still uncertain, yet submits again
+            if found:
+                return {"state": "submitted", "id": found[0]["id"], "reconciled": True}
+    return {"state": "failed"}
+
+
+def apply_reconciles_once(session: Session, client, candidate: str, job: str, attempts: int = 3, *,
+                          extra: dict | None = None, on_error: OnError | None = None) -> dict[str, Any]:
+    """Defective: reconciles after the first uncertain outcome only. A second uncertain
+    outcome in the same attempt is retried blindly. Needs two faults to show."""
+    reconciled = False
+    for _ in range(attempts):
+        try:
+            return {"state": "submitted", "id": _submit(session, client, candidate, job, extra)["id"]}
+        except BoundaryError as error:
+            if error.effect == EFFECT_NONE or reconciled:
+                continue  # defect when reconciled: the new outcome is just as uncertain
+            reconciled = True
+            try:
+                found = session.call(FIND, {"candidate": candidate, "job": job}, client.find)["applications"]
+            except BoundaryError:
+                return {"state": "submission_unknown"}
+            if found:
+                return {"state": "submitted", "id": found[0]["id"], "reconciled": True}
+    return {"state": "failed"}
+
+
+def apply_journaled(session: Session, client, candidate: str, job: str, attempts: int = 3, *,
+                    extra: dict | None = None, on_error: OnError | None = None,
+                    journal: dict | None = None) -> dict[str, Any]:
+    """Correct, including across crashes: like the Swiss Job Radar's ``submission_unknown``
+    state, it writes "pending" to a durable journal before submitting, and a restarted
+    worker reconciles a pending submission before anything else. Malformed responses are
+    treated as uncertain outcomes, not trusted."""
+    journal = {} if journal is None else journal
+    key = f"{candidate}:{job}"
+
+    def lookup() -> list | None:  # None: still unknown
+        try:
+            found = session.call(FIND, {"candidate": candidate, "job": job}, client.find).get("applications")
+        except BoundaryError:
+            return None
+        return found if isinstance(found, list) and all("id" in a for a in found) else None
+
+    def settle(found: list | None) -> dict[str, Any] | None:
+        if found is None:
+            return {"state": "submission_unknown"}  # stop and ask a human
+        if found:
+            journal[key] = "done"
+            return {"state": "submitted", "id": found[0]["id"], "reconciled": True}
+        return None  # certainly not submitted: a new submission is safe
+
+    if journal.get(key) == "pending":  # a previous worker may have submitted
+        settled = settle(lookup())
+        if settled:
+            return settled
+    for _ in range(attempts):
+        journal[key] = "pending"
+        try:
+            response = _submit(session, client, candidate, job, extra)
+        except BoundaryError as error:
+            if on_error:
+                on_error(error)
+            if error.effect == EFFECT_NONE:
+                continue
+            settled = settle(lookup())
+            if settled:
+                return settled
+            continue
+        if "id" not in response:  # malformed: the portal may or may not have stored it
+            settled = settle(lookup())
+            if settled:
+                return settled
+            continue
+        journal[key] = "done"
+        return {"state": "submitted", "id": response["id"]}
+    return {"state": "failed"}
+
+
+IMPLEMENTATIONS = {
+    "blind_retry": apply_blind_retry, "reconciling": apply_reconciling,
+    "retry_on_find_error": apply_retry_on_find_error, "reconciles_once": apply_reconciles_once,
+    "journaled": apply_journaled,
+}
+# Ground truth for scoring the explorer: which variants violate the property under which faults.
+LABELS = {
+    "blind_retry": "defective",
+    "retry_on_find_error": "defective",
+    "reconciles_once": "defective (needs two faults)",
+    "reconciling": "correct within one process; defective across a crash",
+    "journaled": "correct",
+}
 
 
 def apply_full(session: Session, env, candidate: str, job: str, strategy: str) -> dict[str, Any]:

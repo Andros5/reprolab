@@ -1,0 +1,759 @@
+{
+  "seeded_regressions": [
+    {
+      "fault_set": "all six kinds",
+      "variant": "blind_retry",
+      "label": "defective",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 5.580193600006169,
+          "runs": 200,
+          "first_run": 1,
+          "first_seconds": 0.0988626999896951,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 4,
+          "trace_after": 4,
+          "unhandled": 1,
+          "oracle_only": 1,
+          "explored": {
+            "1": 24,
+            "2": 176
+          },
+          "space": {
+            "1": 24,
+            "2": 216
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 6.580216500005918,
+          "runs": 200,
+          "first_run": 1,
+          "first_seconds": 0.06221400000504218,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 4,
+          "trace_after": 4,
+          "unhandled": 1,
+          "oracle_only": 1,
+          "explored": {
+            "1": 24,
+            "2": 176
+          },
+          "space": {
+            "1": 24,
+            "2": 216
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 5.197872199991252,
+          "runs": 200,
+          "first_run": 1,
+          "first_seconds": 0.07845309999538586,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 4,
+          "trace_after": 4,
+          "unhandled": 1,
+          "oracle_only": 1,
+          "explored": {
+            "1": 24,
+            "2": 176
+          },
+          "space": {
+            "1": 24,
+            "2": 216
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "all six kinds",
+      "variant": "retry_on_find_error",
+      "label": "defective",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 3.6479945000028238,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.10711179999634624,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 4.608267400006298,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.12364039997919463,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 5.1572983999794815,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.1875364999868907,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "all six kinds",
+      "variant": "reconciles_once",
+      "label": "defective (needs two faults)",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 5.030821199994534,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.13951039998210035,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 36,
+            "2": 164
+          },
+          "space": {
+            "1": 36,
+            "2": 540
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 5.701987599983113,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.2491802999866195,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 36,
+            "2": 164
+          },
+          "space": {
+            "1": 36,
+            "2": 540
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 6.49537709998549,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.2659714999899734,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 36,
+            "2": 164
+          },
+          "space": {
+            "1": 36,
+            "2": 540
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "all six kinds",
+      "variant": "reconciling",
+      "label": "correct within one process; defective across a crash",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 5.5285114999860525,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.21924350000335835,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 6.410153199976776,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.26542609999887645,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 6.504847699980019,
+          "runs": 200,
+          "first_run": 6,
+          "first_seconds": 0.2509412999788765,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "all six kinds",
+      "variant": "journaled",
+      "label": "correct",
+      "defective": false,
+      "runs": [
+        {
+          "seed": 0,
+          "found": false,
+          "seconds": 6.769809899997199,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 0,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        },
+        {
+          "seed": 1,
+          "found": false,
+          "seconds": 4.567133400007151,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 0,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        },
+        {
+          "seed": 2,
+          "found": false,
+          "seconds": 4.743717000004835,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 0,
+          "oracle_only": 1,
+          "explored": {
+            "1": 42,
+            "2": 158
+          },
+          "space": {
+            "1": 42,
+            "2": 756
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "without crash_after",
+      "variant": "blind_retry",
+      "label": "defective",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 4.228877999994438,
+          "runs": 170,
+          "first_run": 1,
+          "first_seconds": 0.03093430001172237,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 4,
+          "trace_after": 4,
+          "unhandled": 1,
+          "oracle_only": 1,
+          "explored": {
+            "1": 20,
+            "2": 150
+          },
+          "space": {
+            "1": 20,
+            "2": 150
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 5.061047099996358,
+          "runs": 170,
+          "first_run": 1,
+          "first_seconds": 0.061881500005256385,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 4,
+          "trace_after": 4,
+          "unhandled": 1,
+          "oracle_only": 1,
+          "explored": {
+            "1": 20,
+            "2": 150
+          },
+          "space": {
+            "1": 20,
+            "2": 150
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 5.463972199999262,
+          "runs": 170,
+          "first_run": 1,
+          "first_seconds": 0.07714390000910498,
+          "faults_before": 1,
+          "faults_after": 1,
+          "trace_before": 4,
+          "trace_after": 4,
+          "unhandled": 1,
+          "oracle_only": 1,
+          "explored": {
+            "1": 20,
+            "2": 150
+          },
+          "space": {
+            "1": 20,
+            "2": 150
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "without crash_after",
+      "variant": "retry_on_find_error",
+      "label": "defective",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 6.593297300016275,
+          "runs": 200,
+          "first_run": 26,
+          "first_seconds": 0.873942000005627,
+          "faults_before": 2,
+          "faults_after": 2,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 5.889070300007006,
+          "runs": 200,
+          "first_run": 26,
+          "first_seconds": 0.859709299984388,
+          "faults_before": 2,
+          "faults_after": 2,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 5.621275000012247,
+          "runs": 200,
+          "first_run": 26,
+          "first_seconds": 0.6987176999973599,
+          "faults_before": 2,
+          "faults_after": 2,
+          "trace_before": 5,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "without crash_after",
+      "variant": "reconciles_once",
+      "label": "defective (needs two faults)",
+      "defective": true,
+      "runs": [
+        {
+          "seed": 0,
+          "found": true,
+          "seconds": 6.3165840000147,
+          "runs": 200,
+          "first_run": 41,
+          "first_seconds": 1.3262982000014745,
+          "faults_before": 2,
+          "faults_after": 2,
+          "trace_before": 7,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 30,
+            "2": 170
+          },
+          "space": {
+            "1": 30,
+            "2": 375
+          }
+        },
+        {
+          "seed": 1,
+          "found": true,
+          "seconds": 6.3959477999887895,
+          "runs": 200,
+          "first_run": 41,
+          "first_seconds": 1.4042120999947656,
+          "faults_before": 2,
+          "faults_after": 2,
+          "trace_before": 7,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 30,
+            "2": 170
+          },
+          "space": {
+            "1": 30,
+            "2": 375
+          }
+        },
+        {
+          "seed": 2,
+          "found": true,
+          "seconds": 5.578415099997073,
+          "runs": 200,
+          "first_run": 41,
+          "first_seconds": 1.1746132000116631,
+          "faults_before": 2,
+          "faults_after": 2,
+          "trace_before": 7,
+          "trace_after": 4,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 30,
+            "2": 170
+          },
+          "space": {
+            "1": 30,
+            "2": 375
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "without crash_after",
+      "variant": "reconciling",
+      "label": "correct within one process; defective across a crash",
+      "defective": false,
+      "runs": [
+        {
+          "seed": 0,
+          "found": false,
+          "seconds": 4.545020100020338,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        },
+        {
+          "seed": 1,
+          "found": false,
+          "seconds": 5.019753500004299,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        },
+        {
+          "seed": 2,
+          "found": false,
+          "seconds": 4.90090280000004,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 2,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        }
+      ]
+    },
+    {
+      "fault_set": "without crash_after",
+      "variant": "journaled",
+      "label": "correct",
+      "defective": false,
+      "runs": [
+        {
+          "seed": 0,
+          "found": false,
+          "seconds": 6.379316899983678,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 0,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        },
+        {
+          "seed": 1,
+          "found": false,
+          "seconds": 6.581301300000632,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 0,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        },
+        {
+          "seed": 2,
+          "found": false,
+          "seconds": 6.531384300003992,
+          "runs": 200,
+          "first_run": null,
+          "first_seconds": null,
+          "faults_before": null,
+          "faults_after": null,
+          "trace_before": null,
+          "trace_after": null,
+          "unhandled": 0,
+          "oracle_only": 1,
+          "explored": {
+            "1": 35,
+            "2": 165
+          },
+          "space": {
+            "1": 35,
+            "2": 525
+          }
+        }
+      ]
+    }
+  ],
+  "determinism": {
+    "seed": 11,
+    "budget": 120,
+    "identical": true
+  },
+  "overhead": {
+    "boundary_call_direct_us": 0.07,
+    "boundary_call_recorded_us": 13.98,
+    "http_call_direct_ms": 0.866,
+    "http_call_recorded_ms": 0.918,
+    "http_overhead_percent": 6.0,
+    "fixed_cost_share_of_http_percent": 1.6,
+    "memory_bytes_per_event": 1105,
+    "disk_bytes_per_event": 340
+  }
+}

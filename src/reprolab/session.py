@@ -23,8 +23,8 @@ from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Iterator
 
 from reprolab.events import (
-    CALL, CLOCK, EFFECT_NONE, EFFECT_UNKNOWN, FAULT_KINDS, LOST_RESPONSE, RANDOM, RATE_LIMITED,
-    DependencyTracker, Event, normalize,
+    CALL, CLOCK, CRASH_AFTER, DUPLICATE, EFFECT_NONE, EFFECT_UNKNOWN, FAULT_KINDS, INVALID_OUTPUT, LOST_RESPONSE,
+    RANDOM, RATE_LIMITED, RESTART, TIMEOUT, DependencyTracker, Event, normalize,
 )
 
 RECORD = "record"
@@ -50,6 +50,21 @@ class BoundaryError(Exception):
 
 class ReplayDivergence(AssertionError):
     """The code under replay did something the recording does not contain."""
+
+
+class WorkerCrash(BaseException):
+    """The worker process died (simulated). Not an Exception, so the code under test
+    cannot catch it by accident: only the scenario runner handles it, by restarting the
+    code with its durable state and an empty memory."""
+
+
+def _malformed(value: Any) -> Any:
+    """What ``invalid_output`` returns instead of the real output: the same shape, emptied."""
+    if isinstance(value, dict):
+        return {}
+    if isinstance(value, list):
+        return []
+    return None
 
 
 FAULTS = set(FAULT_KINDS)
@@ -136,6 +151,8 @@ class Session:
         request = normalize(request)
         if self.mode == REPLAY:
             event = self._next(CALL, name, request)
+            if event.fault_kind == CRASH_AFTER:
+                raise WorkerCrash(f"#{event.seq} {name}")
             if event.ok:
                 return event.outcome["ok"]
             e = event.error or {}
@@ -148,17 +165,40 @@ class Session:
         try:
             if fault == RATE_LIMITED:
                 raise BoundaryError("RateLimited", "HTTP 429 injected by ReproLab", EFFECT_NONE)
+            if fault == TIMEOUT:
+                raise BoundaryError("Timeout", "request timed out before reaching the service (injected)",
+                                    EFFECT_UNKNOWN)
             result = normalize(fn(request))
+            if fault == DUPLICATE:
+                try:  # the second delivery takes effect too; its response never reaches the caller
+                    fn(request)
+                except Exception:  # noqa: BLE001
+                    pass
             if fault == LOST_RESPONSE:
                 raise BoundaryError("LostResponse", "response lost after the request was processed (injected)",
                                     EFFECT_UNKNOWN)
+            if fault == INVALID_OUTPUT:
+                result = _malformed(result)
         except Exception as exc:  # noqa: BLE001 - every failure becomes a recorded outcome
             error = self.classify(exc)
             self._append(CALL, name, kind=kind, request=request, outcome=error.as_outcome(), fault=mark,
                          deps=all_deps)
             raise error from (None if exc is error else exc)
+        if fault == CRASH_AFTER:
+            crash = BoundaryError("WorkerCrash", "the worker died after the request took effect (injected)",
+                                  EFFECT_UNKNOWN)
+            self._append(CALL, name, kind=kind, request=request, outcome=crash.as_outcome(), fault=mark,
+                         deps=all_deps)
+            raise WorkerCrash(f"#{self.last_seq} {name}")
         self._append(CALL, name, kind=kind, request=request, outcome={"ok": result}, fault=mark, deps=all_deps)
         return result
+
+    def restart(self) -> None:
+        """Mark that the worker restarted after a crash (called by the scenario runner)."""
+        if self.mode == REPLAY:
+            self._next(CALL, RESTART, None)
+            return
+        self._append(CALL, RESTART, kind="tool", request=None, outcome={"ok": None}, deps=[self.last_seq])
 
     def now(self) -> float:
         if self.mode == REPLAY:

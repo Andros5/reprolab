@@ -15,8 +15,10 @@ from typing import Any, Callable
 
 from reprolab.events import Event
 from reprolab.invariants import Invariant, Violation, check
-from reprolab.netguard import no_network
-from reprolab.session import BoundaryError, Fault, Session
+from reprolab.netguard import NetworkBlocked, no_network
+from reprolab.session import BoundaryError, Fault, Session, WorkerCrash
+
+MAX_RESTARTS = 5
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,8 @@ class Scenario:
     live: Callable[[], AbstractContextManager[Any]] | None = None
     offline: Callable[[], Any] | None = None
     oracle: Callable[[Any], dict[str, Any]] | None = None
+    # Judges the oracle's reading: a message when the real state is wrong, else None.
+    oracle_check: Callable[[dict[str, Any]], str | None] | None = None
     description: str = ""
 
 
@@ -50,10 +54,20 @@ class Outcome:
 
 
 def _run(scenario: Scenario, session: Session, env: Any) -> Any:
-    try:
-        return scenario.run(session, env)
-    except BoundaryError as error:  # the code let a boundary error escape: that is its result
-        return {"state": "error", "error": error.type}
+    """Run the code. After a simulated crash, run it again with the same durable
+    environment: a restarted worker has lost its memory, not its storage."""
+    for _ in range(MAX_RESTARTS + 1):
+        try:
+            return scenario.run(session, env)
+        except BoundaryError as error:  # the code let a boundary error escape: that is its result
+            return {"state": "error", "error": error.type}
+        except WorkerCrash:
+            session.restart()
+        except (AssertionError, NetworkBlocked):  # replay divergence or a broken test double: never a result
+            raise
+        except Exception as exc:  # noqa: BLE001 - an unhandled exception is a finding, kept as the result
+            return {"state": "unhandled", "error": type(exc).__name__, "message": str(exc)[:200]}
+    return {"state": "crashed", "restarts": MAX_RESTARTS}
 
 
 def record(scenario: Scenario, faults: list[Fault] | None = None) -> Outcome:

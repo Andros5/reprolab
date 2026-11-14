@@ -33,7 +33,12 @@ EFFECTS = (EFFECT_NONE, EFFECT_UNKNOWN)
 # so explicitly: {"kind": ..., "simulated": true}.
 LOST_RESPONSE = "lost_response"  # the call runs and takes effect, the response is lost
 RATE_LIMITED = "rate_limited"  # the call is rejected before acting (HTTP 429)
-FAULT_KINDS = (LOST_RESPONSE, RATE_LIMITED)
+TIMEOUT = "timeout"  # the request never arrives; the caller cannot know that (effect unknown)
+DUPLICATE = "duplicate"  # the request is delivered twice; the caller sees one response
+INVALID_OUTPUT = "invalid_output"  # the call runs, but its output lacks the expected fields
+CRASH_AFTER = "crash_after"  # the call takes effect, then the worker process dies
+FAULT_KINDS = (LOST_RESPONSE, RATE_LIMITED, TIMEOUT, DUPLICATE, INVALID_OUTPUT, CRASH_AFTER)
+RESTART = "worker.restart"  # the call that marks a restarted worker in a trace
 
 # Automatic dependency detection: a value produced by an earlier event that reappears in
 # a later request links the two. Only distinctive values count (see _distinctive).

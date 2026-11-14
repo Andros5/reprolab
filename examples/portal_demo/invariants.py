@@ -34,8 +34,11 @@ def no_blind_resubmit(events: list[Event]) -> list[Violation]:
                 uncertain.pop(key, None)
             elif (e.error or {}).get("effect") == EFFECT_UNKNOWN:
                 uncertain.setdefault(key, e.seq)
-        elif e.ok:  # a lookup settles the uncertainty either way
+        elif e.ok:  # a well-formed lookup settles the uncertainty either way
+            found = e.outcome["ok"].get("applications") if isinstance(e.outcome["ok"], dict) else None
+            if not isinstance(found, list):
+                continue  # a malformed answer settles nothing (found by the H4 explorer)
             uncertain.pop(key, None)
-            if e.outcome["ok"]["applications"]:
+            if found:
                 submitted[key] = e.seq
     return violations
