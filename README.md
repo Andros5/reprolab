@@ -147,6 +147,7 @@ Runs are stored in `./reprolab.db` (or `--db`, or `$REPROLAB_DB`). A run can be 
   - each counterexample's trace reduces to 4 events;
   - about 35 runs per second, each against a fresh local portal;
   - the same seed gives identical schedules and findings.
+- **Swiss Job Radar, real `send()` ([report](docs/investigations/radar-submit.md)):** 0 radar lines changed, 220 adapter lines, the radar's 366 tests still pass; no second click under any of 240 schedules of up to 2 faults per restart model, but a crash after the click leaves `sending`, which `/reconcile` refuses until the web server restarts.
 - **Instrumentation:** recording a boundary call costs about 14 µs, 1.6% of a lookup to the local portal over HTTP; a stored event takes about 340 bytes in SQLite.
 
 These numbers describe these cases only; they are not a benchmark.
