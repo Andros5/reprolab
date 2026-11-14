@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from reprolab.events import (
-    READABLE_VERSIONS, SCHEMA_VERSION, Event, SchemaError, infer_deps, migrate_v1, validate_trace,
+    READABLE_VERSIONS, SCHEMA_VERSION, Event, SchemaError, infer_deps, migrate_v1, migrate_v2, validate_trace,
 )
 
 SCHEMA = """
@@ -35,10 +35,11 @@ CREATE TABLE IF NOT EXISTS events(
 );
 """
 
-# Where a run comes from. H3 will add "reconstructed" for traces rebuilt from evidence.
+# Where a run comes from.
 RECORDED = "recorded"  # an execution captured by a Session
 REDUCED = "reduced"  # a subset of another run's events; a trace, not an execution
-ORIGINS = (RECORDED, REDUCED)
+RECONSTRUCTED = "reconstructed"  # rebuilt from another system's logs; every event cites its evidence
+ORIGINS = (RECORDED, REDUCED, RECONSTRUCTED)
 
 _META_FIELDS = ("origin", "target", "faults", "reduced_from", "extra")
 _REDUCED_FROM_FIELDS = ("run", "invariant", "anchor", "kept", "original_events", "tests", "seconds")
@@ -75,7 +76,12 @@ class Recording:
                 raise SchemaError(f"fault plan entries are {{name, occurrence, kind}}, got {f!r}")
         if not isinstance(self.extra, dict):
             raise SchemaError("extra must be an object")
-        validate_trace(self.events, contiguous=self.origin == RECORDED)
+        if self.origin == RECORDED and any(e.evidence is not None for e in self.events):
+            raise SchemaError("a recorded run is observed by a Session: its events carry no external evidence")
+        if self.origin == RECONSTRUCTED and any(e.evidence is None for e in self.events):
+            missing = [e.seq for e in self.events if e.evidence is None]
+            raise SchemaError(f"every event of a reconstructed run must cite its evidence; missing at {missing}")
+        validate_trace(self.events, contiguous=self.origin != REDUCED)
 
     def _meta(self) -> dict[str, Any]:
         return {"origin": self.origin, "target": self.target, "faults": self.faults,
@@ -96,13 +102,15 @@ class Recording:
         doc = json.loads(text)
         if not isinstance(doc, dict) or set(doc) != {"schema_version", "run", "events"}:
             raise SchemaError("a recording document has exactly: schema_version, run, events")
-        if doc["schema_version"] != SCHEMA_VERSION:
-            raise UnsupportedSchema(f"document uses schema v{doc['schema_version']}; "
-                                    f"documents are read in v{SCHEMA_VERSION}")
+        version = doc["schema_version"]
+        if version not in (2, SCHEMA_VERSION):  # documents (export) exist since v2
+            raise UnsupportedSchema(f"document uses schema v{version}; documents are read in v2 and v{SCHEMA_VERSION}")
+        if version == 2:
+            doc["events"] = [migrate_v2(e) for e in doc["events"]]
         run = doc["run"]
         if not isinstance(run, dict) or set(run) != {"id", "created_at", "label", *_META_FIELDS}:
             raise SchemaError(f"run header fields must be id, created_at, label, {', '.join(_META_FIELDS)}")
-        rec = cls(events=[Event.from_dict(e) for e in doc["events"]], **run)
+        rec = cls(events=[Event.from_dict(e) for e in doc["events"]], stored_version=version, **run)
         rec.validate()
         return rec
 
@@ -157,6 +165,8 @@ def load_run(path: str | Path, ref: str) -> Recording:
     else:
         if set(meta) != set(_META_FIELDS):
             raise SchemaError(f"run {run_id}: metadata fields must be {list(_META_FIELDS)}")
+        if version == 2:
+            bodies = [migrate_v2(b) for b in bodies]
         rec = Recording(events=[Event.from_dict(b) for b in bodies], label=label, **meta)
     rec = replace(rec, id=run_id, created_at=created, stored_version=version)
     rec.validate()

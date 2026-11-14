@@ -11,12 +11,13 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from reprolab.events import Event
+from reprolab.diff import first_divergence
+from reprolab.events import SCHEMA_VERSION, Event
 from reprolab.invariants import Violation, check
 from reprolab.reduce import NotReproduced, reduce_violation
 from reprolab.scenario import Scenario, load_target, record, replay
 from reprolab.session import Fault, ReplayDivergence
-from reprolab.store import REDUCED, Recording, list_runs, load_run, save_run
+from reprolab.store import RECONSTRUCTED, REDUCED, Recording, list_runs, load_run, save_run
 
 DEFAULT_DB = "reprolab.db"
 
@@ -67,6 +68,10 @@ def cmd_replay(args: argparse.Namespace) -> int:
         raise CliError(f"run {rec.id} is a reduced trace, not an execution: the code is not expected to "
                        "reproduce it. Replay its original run "
                        f"{rec.reduced_from['run']} instead, or check it with 'show'.", code=1)
+    if rec.origin == RECONSTRUCTED and not args.target:
+        raise CliError(f"run {rec.id} was rebuilt from another system's logs. It is replayed by re-executing "
+                       "that system's code through an adapter (for CitaLab: examples.citalab_r02.reexecute); "
+                       "check it with 'show', compare it with 'diff' or shrink it with 'reduce'.", code=1)
     scenario = _scenario_for(rec, args.target)
     try:
         out = replay(scenario, rec.events)
@@ -85,8 +90,10 @@ def cmd_show(args: argparse.Namespace) -> int:
     rec = load_run(args.db, args.run)
     print(f"run {rec.id}  {rec.label!r}")
     print(f"created {rec.created_at}, schema v{rec.stored_version}"
-          + (" (migrated to v2 on read)" if rec.stored_version != 2 else ""))
-    print(f"origin: {rec.origin}" + (" (a trace, not an execution)" if rec.origin == REDUCED else ""))
+          + (f" (migrated to v{SCHEMA_VERSION} on read)" if rec.stored_version != SCHEMA_VERSION else ""))
+    note = {REDUCED: " (a trace, not an execution)",
+            RECONSTRUCTED: " (rebuilt from another system's logs; [reconstructed] marks derived events)"}
+    print(f"origin: {rec.origin}" + note.get(rec.origin, ""))
     print(f"target: {rec.target or '-'}")
     plan = ", ".join(f"{f['name']}:{f['occurrence']}:{f['kind']}" for f in rec.faults) or "none"
     print(f"injected faults (simulated): {plan}")
@@ -138,6 +145,19 @@ def cmd_reduce(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_diff(args: argparse.Namespace) -> int:
+    a, b = load_run(args.db, args.a), load_run(args.db, args.b)
+    print(f"A: run {a.id}  {a.label!r} ({len(a.events)} events)")
+    print(f"B: run {b.id}  {b.label!r} ({len(b.events)} events)")
+    divergence = first_divergence(a.events, b.events)
+    if divergence is None:
+        print("identical traces")
+        return 0
+    print(f"identical for the first {divergence.position} events, then:")
+    print(divergence.describe())
+    return 0
+
+
 def cmd_export(args: argparse.Namespace) -> int:
     doc = load_run(args.db, args.run).to_doc()
     if args.output:
@@ -181,6 +201,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--target")
     s.set_defaults(fn=cmd_reduce)
 
+    s = sub.add_parser("diff", help="find the first event where two runs diverge, and how")
+    s.add_argument("a")
+    s.add_argument("b")
+    s.set_defaults(fn=cmd_diff)
+
     s = sub.add_parser("export", help="write a run as a portable JSON document")
     s.add_argument("run")
     s.add_argument("-o", "--output")
@@ -189,6 +214,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
     args = build_parser().parse_args(argv)
     try:
         return args.fn(args)

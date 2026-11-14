@@ -32,10 +32,10 @@ class Scenario:
     """
 
     name: str
-    run: Callable[[Session, Any], Any]
     invariants: tuple[Invariant, ...]
-    live: Callable[[], AbstractContextManager[Any]]
-    offline: Callable[[], Any]
+    run: Callable[[Session, Any], Any] | None = None  # None: the scenario only checks traces
+    live: Callable[[], AbstractContextManager[Any]] | None = None
+    offline: Callable[[], Any] | None = None
     oracle: Callable[[Any], dict[str, Any]] | None = None
     description: str = ""
 
@@ -57,6 +57,8 @@ def _run(scenario: Scenario, session: Session, env: Any) -> Any:
 
 
 def record(scenario: Scenario, faults: list[Fault] | None = None) -> Outcome:
+    if scenario.run is None or scenario.live is None:
+        raise ValueError(f"scenario {scenario.name!r} has no code to record; it only checks traces")
     faults = list(faults or [])
     with scenario.live() as env:
         session = Session.record(faults=faults)
@@ -68,6 +70,8 @@ def record(scenario: Scenario, faults: list[Fault] | None = None) -> Outcome:
 
 def replay(scenario: Scenario, events: list[Event]) -> Outcome:
     """Re-run the code against a recording with the network disabled."""
+    if scenario.run is None or scenario.offline is None:
+        raise ValueError(f"scenario {scenario.name!r} has no code to replay; it only checks traces")
     session = Session.replay(events)
     with no_network():
         result = _run(scenario, session, scenario.offline())
