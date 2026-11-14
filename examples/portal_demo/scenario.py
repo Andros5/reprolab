@@ -1,18 +1,75 @@
-"""Record and replay one application run: the building blocks of the demo and tests."""
+"""The portal scenarios, as ReproLab targets, plus helpers used by the demo and tests.
+
+CLI targets:
+    examples.portal_demo.scenario:blind_retry        short flow, defective retry
+    examples.portal_demo.scenario:reconciling        short flow, reconciles first
+    examples.portal_demo.scenario:blind_retry_full   posting + LLM draft + telemetry
+    examples.portal_demo.scenario:reconciling_full
+"""
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Iterator
 
-from examples.portal_demo.applier import IMPLEMENTATIONS, OfflineClient, PortalClient
+from examples.portal_demo.applier import (
+    IMPLEMENTATIONS, OfflineClient, OfflineTelemetry, PortalClient, Telemetry, apply_full,
+)
 from examples.portal_demo.invariants import no_blind_resubmit
 from examples.portal_demo.portal import Portal
-from reprolab import BoundaryError, Event, Fault, Session, no_network
-from reprolab.invariants import Violation, check
+from reprolab import Event, Fault, Scenario
+from reprolab import scenario as rl
+from reprolab.invariants import Violation
 
 CANDIDATE, JOB = "synthetic-candidate-1", "job-42"
-INVARIANTS = [no_blind_resubmit]
+INVARIANTS = (no_blind_resubmit,)
+
+
+@dataclass
+class PortalEnv:
+    client: Any
+    telemetry: Any
+    portal: Portal | None = None
+
+
+@contextmanager
+def _live() -> Iterator[PortalEnv]:
+    with Portal() as portal:
+        yield PortalEnv(PortalClient(portal.url), Telemetry(), portal)
+
+
+def _offline() -> PortalEnv:
+    return PortalEnv(OfflineClient(), OfflineTelemetry())
+
+
+def _oracle(env: PortalEnv) -> dict[str, Any]:
+    return {"applications": env.portal.count(CANDIDATE, JOB)}
+
+
+def _short(strategy: str) -> Scenario:
+    return Scenario(
+        name=strategy, invariants=INVARIANTS, live=_live, offline=_offline, oracle=_oracle,
+        run=lambda session, env: IMPLEMENTATIONS[strategy](session, env.client, CANDIDATE, JOB),
+        description=f"submit one application with the {strategy} client")
+
+
+def _full(strategy: str) -> Scenario:
+    return Scenario(
+        name=f"{strategy}_full", invariants=INVARIANTS, live=_live, offline=_offline, oracle=_oracle,
+        run=lambda session, env: apply_full(session, env, CANDIDATE, JOB, strategy),
+        description=f"read the posting, draft a letter (stub LLM), submit with {strategy}, log to telemetry")
+
+
+blind_retry = _short("blind_retry")
+reconciling = _short("reconciling")
+blind_retry_full = _full("blind_retry")
+reconciling_full = _full("reconciling")
+SCENARIOS = {s.name: s for s in (blind_retry, reconciling, blind_retry_full, reconciling_full)}
+
+
+def target(name: str) -> str:
+    return f"{__name__}:{name}"
 
 
 @dataclass
@@ -26,25 +83,11 @@ class Run:
 
 
 def record(implementation: str, faults: list[Fault]) -> Run:
-    with Portal() as portal:
-        session = Session.record(faults=faults)
-        result = _run(implementation, session, PortalClient(portal.url))
-        events = session.finish()
-        oracle = portal.count(CANDIDATE, JOB)
-    return Run(implementation, result, events, check(events, INVARIANTS), oracle, faults)
+    out = rl.record(SCENARIOS[implementation], faults)
+    return Run(implementation, out.result, out.events, out.violations, out.oracle["applications"], out.faults)
 
 
 def replay(implementation: str, events: list[Event]) -> Run:
     """Re-run the code against a recording with the network disabled."""
-    session = Session.replay(events)
-    with no_network():
-        result = _run(implementation, session, OfflineClient())
-    replayed = session.finish()
-    return Run(implementation, result, replayed, check(replayed, INVARIANTS))
-
-
-def _run(implementation: str, session: Session, client) -> dict[str, Any]:
-    try:
-        return IMPLEMENTATIONS[implementation](session, client, CANDIDATE, JOB)
-    except BoundaryError as error:
-        return {"state": "error", "error": error.type}
+    out = rl.replay(SCENARIOS[implementation], events)
+    return Run(implementation, out.result, out.events, out.violations)
