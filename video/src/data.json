@@ -1,0 +1,1577 @@
+{
+ "portal": {
+  "events": [
+   {
+    "seq": 1,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"b8ccd9b01eea44a491f...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 2,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ LostResponse (effect unknown)",
+    "fault": "lost_response",
+    "deps": [
+     1
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 3,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"462f8596c72c416aa0e...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 4,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ {\"id\": 2}",
+    "fault": null,
+    "deps": [
+     3
+    ],
+    "violation": true,
+    "reconstructed": false
+   }
+  ],
+  "violation": "[no-blind-resubmit] at event #4: resubmits ('synthetic-candidate-1', 'job-42') after the uncertain outcome at #2 without reconciling first",
+  "applications": 2,
+  "replay_identical": true,
+  "result": {
+   "state": "submitted",
+   "id": 2
+  }
+ },
+ "reduction": {
+  "events": [
+   {
+    "seq": 1,
+    "type": "clock",
+    "kind": "",
+    "name": "now",
+    "summary": "1794621371.0844834",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 2,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.job",
+    "summary": "→ {\"company\": \"Example Analytics AG\", \"job\": \"job-42\", \"title\": \"Data Engineer (synthetic po...\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true
+   },
+   {
+    "seq": 3,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.draft_cover_letter",
+    "summary": "→ {\"text\": \"Dear hiring team, synthetic...\"}",
+    "fault": null,
+    "deps": [
+     2
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true
+   },
+   {
+    "seq": 4,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"3b5c80c45d544519985...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true
+   },
+   {
+    "seq": 5,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ LostResponse (effect unknown)",
+    "fault": "lost_response",
+    "deps": [
+     3,
+     4
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true
+   },
+   {
+    "seq": 6,
+    "type": "clock",
+    "kind": "",
+    "name": "now",
+    "summary": "1794621371.0930533",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 7,
+    "type": "call",
+    "kind": "tool",
+    "name": "telemetry.log",
+    "summary": "→ {\"logged\": true}",
+    "fault": null,
+    "deps": [
+     6
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 8,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"54a042948efb4db2b0b...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true
+   },
+   {
+    "seq": 9,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ RateLimited (effect none)",
+    "fault": "rate_limited",
+    "deps": [
+     3,
+     8
+    ],
+    "violation": true,
+    "reconstructed": false,
+    "kept": true
+   },
+   {
+    "seq": 10,
+    "type": "clock",
+    "kind": "",
+    "name": "now",
+    "summary": "1794621371.093658",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 11,
+    "type": "call",
+    "kind": "tool",
+    "name": "telemetry.log",
+    "summary": "→ {\"logged\": true}",
+    "fault": null,
+    "deps": [
+     10
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 12,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"e774d34c70ea4fbfa51...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 13,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ {\"id\": 2}",
+    "fault": null,
+    "deps": [
+     3,
+     12
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 14,
+    "type": "clock",
+    "kind": "",
+    "name": "now",
+    "summary": "1794621371.1141195",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   },
+   {
+    "seq": 15,
+    "type": "call",
+    "kind": "tool",
+    "name": "telemetry.log",
+    "summary": "→ {\"logged\": true}",
+    "fault": null,
+    "deps": [
+     14
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false
+   }
+  ],
+  "before": 15,
+  "after": 6,
+  "tests": 55,
+  "anchor": 9
+ },
+ "explore": {
+  "runs": 200,
+  "seconds": 8.32,
+  "runs_per_second": 24,
+  "space": {
+   "1": 42,
+   "2": 756
+  },
+  "explored": {
+   "1": 42,
+   "2": 158
+  },
+  "sites": [
+   "portal.submit#1",
+   "portal.submit#2",
+   "portal.find#1",
+   "portal.find#2",
+   "portal.submit#3",
+   "portal.submit#4",
+   "portal.find#3"
+  ],
+  "schedules": [
+   "portal.submit:1:lost_response",
+   "portal.submit:1:rate_limited",
+   "portal.submit:1:timeout",
+   "portal.submit:1:duplicate",
+   "portal.submit:1:invalid_output",
+   "portal.submit:1:crash_after",
+   "portal.submit:2:lost_response",
+   "portal.submit:2:rate_limited",
+   "portal.submit:2:timeout",
+   "portal.submit:2:duplicate",
+   "portal.submit:2:invalid_output",
+   "portal.submit:2:crash_after",
+   "portal.find:1:lost_response",
+   "portal.find:1:rate_limited",
+   "portal.find:1:timeout",
+   "portal.find:1:duplicate",
+   "portal.find:1:invalid_output",
+   "portal.find:1:crash_after",
+   "portal.find:2:lost_response",
+   "portal.find:2:rate_limited",
+   "portal.find:2:timeout",
+   "portal.find:2:duplicate",
+   "portal.find:2:invalid_output",
+   "portal.find:2:crash_after",
+   "portal.submit:3:lost_response",
+   "portal.submit:3:rate_limited",
+   "portal.submit:3:timeout",
+   "portal.submit:3:duplicate",
+   "portal.submit:3:invalid_output",
+   "portal.submit:3:crash_after",
+   "portal.find:1:lost_response, portal.submit:1:lost_response",
+   "portal.find:1:rate_limited, portal.submit:1:lost_response",
+   "portal.find:1:timeout, portal.submit:1:lost_response",
+   "portal.find:1:duplicate, portal.submit:1:lost_response",
+   "portal.find:1:invalid_output, portal.submit:1:lost_response",
+   "portal.find:1:crash_after, portal.submit:1:lost_response",
+   "portal.submit:1:rate_limited, portal.submit:2:lost_response",
+   "portal.submit:1:rate_limited, portal.submit:2:rate_limited",
+   "portal.submit:4:lost_response",
+   "portal.submit:4:rate_limited",
+   "portal.submit:4:timeout",
+   "portal.submit:4:duplicate",
+   "portal.submit:4:invalid_output",
+   "portal.submit:4:crash_after",
+   "portal.submit:1:rate_limited, portal.submit:2:timeout",
+   "portal.submit:1:rate_limited, portal.submit:2:duplicate",
+   "portal.submit:1:rate_limited, portal.submit:2:invalid_output",
+   "portal.submit:1:rate_limited, portal.submit:2:crash_after",
+   "portal.submit:1:timeout, portal.submit:2:lost_response",
+   "portal.find:3:lost_response",
+   "portal.find:3:rate_limited",
+   "portal.find:3:timeout",
+   "portal.find:3:duplicate",
+   "portal.find:3:invalid_output",
+   "portal.find:3:crash_after",
+   "portal.submit:1:timeout, portal.submit:2:rate_limited",
+   "portal.submit:1:timeout, portal.submit:2:timeout",
+   "portal.submit:1:timeout, portal.submit:2:duplicate",
+   "portal.submit:1:timeout, portal.submit:2:invalid_output",
+   "portal.submit:1:timeout, portal.submit:2:crash_after",
+   "portal.find:1:lost_response, portal.submit:1:timeout",
+   "portal.find:1:rate_limited, portal.submit:1:timeout",
+   "portal.find:1:timeout, portal.submit:1:timeout",
+   "portal.find:1:duplicate, portal.submit:1:timeout",
+   "portal.find:1:invalid_output, portal.submit:1:timeout",
+   "portal.find:1:crash_after, portal.submit:1:timeout",
+   "portal.submit:1:crash_after, portal.submit:2:lost_response",
+   "portal.submit:1:crash_after, portal.submit:2:rate_limited",
+   "portal.submit:1:crash_after, portal.submit:2:timeout",
+   "portal.submit:1:crash_after, portal.submit:2:duplicate",
+   "portal.submit:1:crash_after, portal.submit:2:invalid_output",
+   "portal.submit:1:crash_after, portal.submit:2:crash_after",
+   "portal.find:2:duplicate, portal.submit:3:lost_response",
+   "portal.find:1:crash_after, portal.find:3:invalid_output",
+   "portal.submit:1:timeout, portal.submit:3:timeout",
+   "portal.find:1:invalid_output, portal.submit:3:lost_response",
+   "portal.submit:2:duplicate, portal.submit:4:lost_response",
+   "portal.submit:1:duplicate, portal.submit:2:lost_response",
+   "portal.find:3:rate_limited, portal.submit:1:crash_after",
+   "portal.find:2:duplicate, portal.submit:4:timeout",
+   "portal.find:2:timeout, portal.submit:2:rate_limited",
+   "portal.find:1:crash_after, portal.submit:1:invalid_output",
+   "portal.find:2:crash_after, portal.submit:4:duplicate",
+   "portal.find:2:invalid_output, portal.submit:2:rate_limited",
+   "portal.find:1:lost_response, portal.find:3:lost_response",
+   "portal.find:3:rate_limited, portal.submit:2:duplicate",
+   "portal.submit:1:invalid_output, portal.submit:4:duplicate",
+   "portal.submit:2:lost_response, portal.submit:3:invalid_output",
+   "portal.find:2:timeout, portal.submit:4:invalid_output",
+   "portal.submit:1:rate_limited, portal.submit:4:invalid_output",
+   "portal.find:2:rate_limited, portal.submit:2:timeout",
+   "portal.find:1:invalid_output, portal.submit:1:invalid_output",
+   "portal.submit:1:crash_after, portal.submit:3:lost_response",
+   "portal.find:1:rate_limited, portal.find:2:invalid_output",
+   "portal.submit:1:lost_response, portal.submit:2:timeout",
+   "portal.find:2:duplicate, portal.submit:3:duplicate",
+   "portal.submit:1:lost_response, portal.submit:4:timeout",
+   "portal.find:1:rate_limited, portal.submit:2:invalid_output",
+   "portal.find:3:rate_limited, portal.submit:1:timeout",
+   "portal.submit:1:invalid_output, portal.submit:2:crash_after",
+   "portal.find:2:timeout, portal.submit:4:lost_response",
+   "portal.find:2:timeout, portal.submit:1:timeout",
+   "portal.submit:1:timeout, portal.submit:4:invalid_output",
+   "portal.find:1:crash_after, portal.submit:3:crash_after",
+   "portal.find:3:lost_response, portal.submit:3:timeout",
+   "portal.find:3:crash_after, portal.submit:2:duplicate",
+   "portal.submit:3:crash_after, portal.submit:4:timeout",
+   "portal.find:1:timeout, portal.find:3:crash_after",
+   "portal.find:3:duplicate, portal.submit:3:timeout",
+   "portal.submit:1:rate_limited, portal.submit:3:duplicate",
+   "portal.find:1:invalid_output, portal.find:2:duplicate",
+   "portal.submit:1:invalid_output, portal.submit:3:lost_response",
+   "portal.find:1:lost_response, portal.submit:1:invalid_output",
+   "portal.submit:2:rate_limited, portal.submit:3:lost_response",
+   "portal.find:1:lost_response, portal.submit:2:lost_response",
+   "portal.find:2:rate_limited, portal.find:3:invalid_output",
+   "portal.find:3:duplicate, portal.submit:4:duplicate",
+   "portal.find:2:duplicate, portal.find:3:lost_response",
+   "portal.submit:2:duplicate, portal.submit:4:duplicate",
+   "portal.submit:2:lost_response, portal.submit:3:crash_after",
+   "portal.find:1:invalid_output, portal.submit:4:rate_limited",
+   "portal.find:1:timeout, portal.find:3:duplicate",
+   "portal.submit:1:timeout, portal.submit:3:invalid_output",
+   "portal.find:1:timeout, portal.submit:4:lost_response",
+   "portal.submit:2:timeout, portal.submit:4:rate_limited",
+   "portal.find:3:invalid_output, portal.submit:4:lost_response",
+   "portal.find:2:timeout, portal.submit:4:crash_after",
+   "portal.submit:2:invalid_output, portal.submit:4:rate_limited",
+   "portal.submit:2:rate_limited, portal.submit:4:duplicate",
+   "portal.find:3:crash_after, portal.submit:3:timeout",
+   "portal.submit:2:invalid_output, portal.submit:4:invalid_output",
+   "portal.find:1:rate_limited, portal.submit:3:timeout",
+   "portal.submit:1:lost_response, portal.submit:3:lost_response",
+   "portal.submit:1:crash_after, portal.submit:4:duplicate",
+   "portal.find:3:rate_limited, portal.submit:1:lost_response",
+   "portal.find:3:lost_response, portal.submit:2:timeout",
+   "portal.find:1:duplicate, portal.find:2:lost_response",
+   "portal.submit:1:invalid_output, portal.submit:3:crash_after",
+   "portal.find:1:lost_response, portal.submit:4:duplicate",
+   "portal.find:2:crash_after, portal.submit:4:timeout",
+   "portal.find:2:duplicate, portal.submit:1:invalid_output",
+   "portal.find:1:duplicate, portal.submit:3:duplicate",
+   "portal.find:3:invalid_output, portal.submit:4:invalid_output",
+   "portal.find:2:crash_after, portal.find:3:timeout",
+   "portal.submit:1:invalid_output, portal.submit:4:rate_limited",
+   "portal.find:1:duplicate, portal.find:2:crash_after",
+   "portal.find:1:timeout, portal.submit:4:invalid_output",
+   "portal.find:1:crash_after, portal.find:2:timeout",
+   "portal.find:1:crash_after, portal.find:2:lost_response",
+   "portal.find:3:timeout, portal.submit:1:invalid_output",
+   "portal.find:1:rate_limited, portal.submit:3:crash_after",
+   "portal.find:3:invalid_output, portal.submit:3:crash_after",
+   "portal.submit:2:rate_limited, portal.submit:4:crash_after",
+   "portal.find:3:duplicate, portal.submit:3:duplicate",
+   "portal.find:2:invalid_output, portal.submit:2:timeout",
+   "portal.find:2:lost_response, portal.find:3:invalid_output",
+   "portal.find:2:lost_response, portal.submit:4:timeout",
+   "portal.submit:1:crash_after, portal.submit:4:lost_response",
+   "portal.find:1:invalid_output, portal.find:2:rate_limited",
+   "portal.find:2:lost_response, portal.submit:2:crash_after",
+   "portal.find:1:lost_response, portal.submit:3:invalid_output",
+   "portal.find:2:invalid_output, portal.submit:3:invalid_output",
+   "portal.find:2:timeout, portal.submit:2:timeout",
+   "portal.find:1:invalid_output, portal.submit:3:rate_limited",
+   "portal.submit:3:lost_response, portal.submit:4:invalid_output",
+   "portal.find:2:lost_response, portal.submit:1:timeout",
+   "portal.submit:2:lost_response, portal.submit:3:lost_response",
+   "portal.find:1:rate_limited, portal.find:2:rate_limited",
+   "portal.submit:3:timeout, portal.submit:4:invalid_output",
+   "portal.submit:1:rate_limited, portal.submit:4:rate_limited",
+   "portal.submit:2:timeout, portal.submit:3:invalid_output",
+   "portal.find:3:timeout, portal.submit:1:crash_after",
+   "portal.submit:1:rate_limited, portal.submit:3:crash_after",
+   "portal.find:3:lost_response, portal.submit:3:duplicate",
+   "portal.find:3:invalid_output, portal.submit:1:rate_limited",
+   "portal.find:3:timeout, portal.submit:1:lost_response",
+   "portal.submit:2:timeout, portal.submit:3:duplicate",
+   "portal.find:3:invalid_output, portal.submit:3:timeout",
+   "portal.find:1:lost_response, portal.submit:4:timeout",
+   "portal.find:1:crash_after, portal.submit:1:duplicate",
+   "portal.find:2:rate_limited, portal.find:3:timeout",
+   "portal.find:3:lost_response, portal.submit:2:rate_limited",
+   "portal.find:2:lost_response, portal.submit:1:crash_after",
+   "portal.find:1:lost_response, portal.submit:4:invalid_output",
+   "portal.find:3:timeout, portal.submit:2:invalid_output",
+   "portal.submit:3:lost_response, portal.submit:4:timeout",
+   "portal.submit:1:duplicate, portal.submit:4:timeout",
+   "portal.find:2:timeout, portal.submit:4:rate_limited",
+   "portal.find:2:crash_after, portal.submit:4:invalid_output",
+   "portal.submit:1:lost_response, portal.submit:4:rate_limited",
+   "portal.find:2:lost_response, portal.submit:3:rate_limited",
+   "portal.submit:2:rate_limited, portal.submit:4:timeout",
+   "portal.find:2:lost_response, portal.submit:4:invalid_output",
+   "portal.submit:2:duplicate, portal.submit:3:duplicate",
+   "portal.find:2:duplicate, portal.submit:1:lost_response",
+   "portal.find:2:rate_limited, portal.submit:3:duplicate",
+   "portal.find:3:duplicate, portal.submit:2:duplicate",
+   "portal.find:3:crash_after, portal.submit:3:rate_limited",
+   "portal.find:1:lost_response, portal.find:2:duplicate",
+   "portal.find:1:lost_response, portal.find:2:invalid_output"
+  ],
+  "outcomes": [
+   "clean",
+   "clean",
+   "clean",
+   "oracle-only",
+   "unhandled",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "oracle-only",
+   "unhandled",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "oracle-only",
+   "unhandled",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "property",
+   "property",
+   "property",
+   "property",
+   "property",
+   "property",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "oracle-only",
+   "property",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "unhandled",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "oracle-only",
+   "clean",
+   "clean",
+   "property",
+   "clean",
+   "clean",
+   "clean",
+   "oracle-only",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean",
+   "clean"
+  ],
+  "findings": [
+   {
+    "category": "property",
+    "signature": "no-blind-resubmit at portal.submit",
+    "first_run": 6,
+    "hits": 17,
+    "minimal": [
+     "portal.submit#1 crash_after"
+    ],
+    "trace": 5,
+    "reduced": 4
+   },
+   {
+    "category": "unhandled",
+    "signature": "KeyError after portal.submit",
+    "first_run": 5,
+    "hits": 14,
+    "minimal": [
+     "portal.submit#1 invalid_output"
+    ],
+    "trace": 2,
+    "reduced": null
+   },
+   {
+    "category": "unhandled",
+    "signature": "KeyError after portal.find",
+    "first_run": 35,
+    "hits": 2,
+    "minimal": [
+     "portal.find#1 invalid_output",
+     "portal.submit#1 lost_response"
+    ],
+    "trace": 3,
+    "reduced": null
+   },
+   {
+    "category": "oracle-only",
+    "signature": "the portal holds 2 applications for one job",
+    "first_run": 4,
+    "hits": 6,
+    "minimal": [
+     "portal.submit#1 duplicate"
+    ],
+    "trace": 2,
+    "reduced": null
+   }
+  ],
+  "crash_trace": [
+   {
+    "seq": 1,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"05fc0b5a0f1a43f0b53...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 2,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ WorkerCrash (effect unknown)",
+    "fault": "crash_after",
+    "deps": [
+     1
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 3,
+    "type": "call",
+    "kind": "tool",
+    "name": "worker.restart",
+    "summary": "→ null",
+    "fault": null,
+    "deps": [
+     2
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 4,
+    "type": "random",
+    "kind": "",
+    "name": "token",
+    "summary": "\"b091da97b9bf4352988...\"",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 5,
+    "type": "call",
+    "kind": "http",
+    "name": "portal.submit",
+    "summary": "→ {\"id\": 2}",
+    "fault": null,
+    "deps": [
+     4
+    ],
+    "violation": true,
+    "reconstructed": false
+   }
+  ]
+ },
+ "regress": {
+  "rows": [
+   {
+    "label": "blind_retry",
+    "faults": [
+     "lost_response @ portal.submit#1"
+    ],
+    "verdict": "fixed",
+    "compatibility": "incompatible",
+    "divergence_seq": 3,
+    "matched": 2,
+    "total": 4
+   },
+   {
+    "label": "reconciling",
+    "faults": [
+     "crash_after @ portal.submit#1"
+    ],
+    "verdict": "fixed",
+    "compatibility": "incompatible",
+    "divergence_seq": 4,
+    "matched": 3,
+    "total": 5
+   },
+   {
+    "label": "reconciling",
+    "faults": [
+     "timeout @ portal.submit#1",
+     "lost_response @ portal.submit#2"
+    ],
+    "verdict": "still passing",
+    "compatibility": "compatible",
+    "divergence_seq": null,
+    "matched": 6,
+    "total": 6
+   },
+   {
+    "label": "blind_retry",
+    "faults": [],
+    "verdict": "still passing",
+    "compatibility": "compatible",
+    "divergence_seq": null,
+    "matched": 2,
+    "total": 2
+   }
+  ],
+  "compare": {
+   "old": [
+    {
+     "seq": 1,
+     "type": "random",
+     "kind": "",
+     "name": "token",
+     "summary": "\"8141b08b6d364a17857...\"",
+     "fault": null,
+     "deps": [],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 2,
+     "type": "call",
+     "kind": "http",
+     "name": "portal.submit",
+     "summary": "→ WorkerCrash (effect unknown)",
+     "fault": "crash_after",
+     "deps": [
+      1
+     ],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 3,
+     "type": "call",
+     "kind": "tool",
+     "name": "worker.restart",
+     "summary": "→ null",
+     "fault": null,
+     "deps": [
+      2
+     ],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 4,
+     "type": "random",
+     "kind": "",
+     "name": "token",
+     "summary": "\"0bd839803335413bb24...\"",
+     "fault": null,
+     "deps": [],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 5,
+     "type": "call",
+     "kind": "http",
+     "name": "portal.submit",
+     "summary": "→ {\"id\": 2}",
+     "fault": null,
+     "deps": [
+      4
+     ],
+     "violation": true,
+     "reconstructed": false
+    }
+   ],
+   "new": [
+    {
+     "seq": 1,
+     "type": "random",
+     "kind": "",
+     "name": "token",
+     "summary": "\"e17f557eb86a4b5ea35...\"",
+     "fault": null,
+     "deps": [],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 2,
+     "type": "call",
+     "kind": "http",
+     "name": "portal.submit",
+     "summary": "→ WorkerCrash (effect unknown)",
+     "fault": "crash_after",
+     "deps": [
+      1
+     ],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 3,
+     "type": "call",
+     "kind": "tool",
+     "name": "worker.restart",
+     "summary": "→ null",
+     "fault": null,
+     "deps": [
+      2
+     ],
+     "violation": false,
+     "reconstructed": false
+    },
+    {
+     "seq": 4,
+     "type": "call",
+     "kind": "http",
+     "name": "portal.find",
+     "summary": "→ {\"applications\": [{\"id\": 1}]}",
+     "fault": null,
+     "deps": [],
+     "violation": false,
+     "reconstructed": false
+    }
+   ],
+   "position": 3,
+   "kind": "different-call"
+  }
+ },
+ "citalab": {
+  "agreement": 12,
+  "episodes": 12,
+  "failures": 9,
+  "identical_requests": 4,
+  "answers": [
+   "reschedule",
+   "book",
+   "book",
+   "book"
+  ],
+  "m5": [
+   {
+    "seq": 1,
+    "type": "call",
+    "kind": "user",
+    "name": "user.message",
+    "summary": "→ {\"action\": \"message\", \"text\": \"¿Puedes buscarme otra hora ...\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 2,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.context",
+    "summary": "→ {\"appointment_id\": \"ind-apt-f\", \"clinical_question\": false, \"date_from\": \"2026-11-09\", \"date_to\": \"2026-11-13\", \"detail_level\": null, \"directive_scope\": null, \"emergency\": false, \"intent\": \"reschedule\", \"message_language\": \"es\", \"modality\": null, \"other_person\": false, \"part_of_day\": null, \"profile_opt_out\": false, \"question\": null, \"reminder_channel\": null, \"reminder_minutes_before\": null, \"response_language\": null, \"service\": \"general-practice\", \"slot_id\": null, \"time\": null}",
+    "fault": null,
+    "deps": [
+     1
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 3,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.compliance",
+    "summary": "→ {\"clinical_notice\": false, \"decision\": \"proceed\", \"reason\": \"La peticion es una gestion ...\", \"rule_id\": \"none\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 4,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.get_preferences",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Vista del perfil limitada a...\", \"references\": [\"RGPD art. 5.1.c\", \"RGPD art. 25\"], \"rule_id\": \"CMP-MINIMIZE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 5,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.profile",
+    "summary": "→ {\"reason\": \"La peticion solicita buscar...\", \"use_detail_preference\": false, \"use_language_preference\": false, \"use_reminder_channel\": false, \"use_time_preference\": true}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 6,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.orchestration",
+    "summary": "→ {\"action\": \"find_slots\", \"appointment_id\": \"ind-apt-f\", \"missing\": \"none\", \"reason\": \"El usuario quiere cambiar u...\", \"slot_id\": null}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3,
+     5
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 7,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.find_slots",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Acceso permitido a datos pr...\", \"references\": [\"RGPD art. 5.1.b\"], \"rule_id\": \"CMP-PURPOSE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3,
+     5,
+     6
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 8,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.get_preferences",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Vista del perfil limitada a...\", \"references\": [\"RGPD art. 5.1.c\", \"RGPD art. 25\"], \"rule_id\": \"CMP-MINIMIZE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3,
+     5,
+     6
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 9,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.orchestration",
+    "summary": "→ {\"action\": \"respond\", \"appointment_id\": \"ind-apt-f\", \"missing\": \"none\", \"reason\": \"Mostrar los huecos encontra...\", \"slot_id\": null}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3,
+     5,
+     6
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 10,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.personalization",
+    "summary": "→ {\"content\": \"{\\n  \\\"text\\\": \\\"Estos son los ...\", \"role\": \"assistant\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     3,
+     5,
+     6,
+     9
+    ],
+    "violation": false,
+    "reconstructed": true
+   }
+  ],
+  "h": [
+   {
+    "seq": 1,
+    "type": "call",
+    "kind": "user",
+    "name": "user.message",
+    "summary": "→ {\"action\": \"message\", \"text\": \"¿Puedes buscarme otra hora ...\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 2,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.context",
+    "summary": "→ {\"appointment_id\": null, \"clinical_question\": false, \"date_from\": \"2026-11-09\", \"date_to\": \"2026-11-13\", \"detail_level\": null, \"directive_scope\": null, \"emergency\": false, \"intent\": \"book\", \"message_language\": \"es\", \"modality\": null, \"other_person\": false, \"part_of_day\": null, \"profile_opt_out\": false, \"question\": null, \"reminder_channel\": null, \"reminder_minutes_before\": null, \"response_language\": null, \"service\": \"general-practice\", \"slot_id\": null, \"time\": null}",
+    "fault": null,
+    "deps": [
+     1
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 3,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.find_slots",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Acceso permitido a datos pr...\", \"references\": [\"RGPD art. 5.1.b\"], \"rule_id\": \"CMP-PURPOSE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 4,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.get_preferences",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Vista del perfil limitada a...\", \"references\": [\"RGPD art. 5.1.c\", \"RGPD art. 25\"], \"rule_id\": \"CMP-MINIMIZE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 5,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.writer",
+    "summary": "→ {\"content\": \"{\\\"text\\\": \\\"Estos son los hue...\", \"role\": \"assistant\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 6,
+    "type": "call",
+    "kind": "user",
+    "name": "user.message",
+    "summary": "→ {\"action\": \"message\", \"text\": \"La primera me va bien.\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 7,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.context",
+    "summary": "→ {\"appointment_id\": null, \"clinical_question\": false, \"date_from\": null, \"date_to\": null, \"detail_level\": null, \"directive_scope\": null, \"emergency\": false, \"intent\": \"book\", \"message_language\": \"es\", \"modality\": null, \"other_person\": false, \"part_of_day\": null, \"profile_opt_out\": false, \"question\": null, \"reminder_channel\": null, \"reminder_minutes_before\": null, \"response_language\": null, \"service\": \"general-practice\", \"slot_id\": \"ind-f5\", \"time\": null}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     6
+    ],
+    "violation": false,
+    "reconstructed": true
+   },
+   {
+    "seq": 8,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.propose_booking",
+    "summary": "→ null",
+    "fault": null,
+    "deps": [
+     6,
+     7
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 9,
+    "type": "call",
+    "kind": "tool",
+    "name": "core.proposal",
+    "summary": "→ {\"appointment_id\": null, \"appointment_version\": null, \"channel\": null, \"created_turn\": 2, \"expires_at\": \"2026-11-02T08:30:00+00:00\", \"minutes_before\": null, \"operation\": \"book\", \"proposal_id\": \"prop-290b18c919\", \"revision\": 1, \"slot_id\": \"ind-f5\", \"slot_version\": \"1\"}",
+    "fault": null,
+    "deps": [
+     6,
+     7,
+     8
+    ],
+    "violation": false,
+    "reconstructed": false
+   },
+   {
+    "seq": 10,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.writer",
+    "summary": "→ {\"content\": \"{\\\"text\\\": \\\"Le propongo una c...\", \"role\": \"assistant\"}",
+    "fault": null,
+    "deps": [
+     6,
+     7
+    ],
+    "violation": false,
+    "reconstructed": true
+   }
+  ],
+  "divergence": {
+   "position": 1,
+   "kind": "same-request-different-outcome",
+   "values": [
+    [
+     "/outcome/ok/appointment_id",
+     "ind-apt-f",
+     null
+    ],
+    [
+     "/outcome/ok/intent",
+     "reschedule",
+     "book"
+    ]
+   ]
+  },
+  "reduction": [
+   {
+    "seq": 1,
+    "type": "call",
+    "kind": "user",
+    "name": "user.message",
+    "summary": "→ {\"action\": \"message\", \"text\": \"¿Puedes buscarme otra hora ...\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 2,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.context",
+    "summary": "→ {\"appointment_id\": null, \"clinical_question\": false, \"date_from\": \"2026-11-09\", \"date_to\": \"2026-11-13\", \"detail_level\": null, \"directive_scope\": null, \"emergency\": false, \"intent\": \"book\", \"message_language\": \"es\", \"modality\": null, \"other_person\": false, \"part_of_day\": null, \"profile_opt_out\": false, \"question\": null, \"reminder_channel\": null, \"reminder_minutes_before\": null, \"response_language\": null, \"service\": \"general-practice\", \"slot_id\": null, \"time\": null}",
+    "fault": null,
+    "deps": [
+     1
+    ],
+    "violation": false,
+    "reconstructed": true,
+    "kept": true,
+    "intent": "book",
+    "operation": null
+   },
+   {
+    "seq": 3,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.find_slots",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Acceso permitido a datos pr...\", \"references\": [\"RGPD art. 5.1.b\"], \"rule_id\": \"CMP-PURPOSE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 4,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.get_preferences",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Vista del perfil limitada a...\", \"references\": [\"RGPD art. 5.1.c\", \"RGPD art. 25\"], \"rule_id\": \"CMP-MINIMIZE-01\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 5,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.writer",
+    "summary": "→ {\"content\": \"{\\\"text\\\": \\\"Estos son los hue...\", \"role\": \"assistant\"}",
+    "fault": null,
+    "deps": [
+     1,
+     2
+    ],
+    "violation": false,
+    "reconstructed": true,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 6,
+    "type": "call",
+    "kind": "user",
+    "name": "user.message",
+    "summary": "→ {\"action\": \"message\", \"text\": \"La primera me va bien.\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 7,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.context",
+    "summary": "→ {\"appointment_id\": null, \"clinical_question\": false, \"date_from\": null, \"date_to\": null, \"detail_level\": null, \"directive_scope\": null, \"emergency\": false, \"intent\": \"book\", \"message_language\": \"es\", \"modality\": null, \"other_person\": false, \"part_of_day\": null, \"profile_opt_out\": false, \"question\": null, \"reminder_channel\": null, \"reminder_minutes_before\": null, \"response_language\": null, \"service\": \"general-practice\", \"slot_id\": \"ind-f5\", \"time\": null}",
+    "fault": null,
+    "deps": [
+     1,
+     2,
+     6
+    ],
+    "violation": false,
+    "reconstructed": true,
+    "kept": true,
+    "intent": "book",
+    "operation": null
+   },
+   {
+    "seq": 8,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.propose_booking",
+    "summary": "→ null",
+    "fault": null,
+    "deps": [
+     6,
+     7
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 9,
+    "type": "call",
+    "kind": "tool",
+    "name": "core.proposal",
+    "summary": "→ {\"appointment_id\": null, \"appointment_version\": null, \"channel\": null, \"created_turn\": 2, \"expires_at\": \"2026-11-02T08:30:00+00:00\", \"minutes_before\": null, \"operation\": \"book\", \"proposal_id\": \"prop-290b18c919\", \"revision\": 1, \"slot_id\": \"ind-f5\", \"slot_version\": \"1\"}",
+    "fault": null,
+    "deps": [
+     6,
+     7,
+     8
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": "book"
+   },
+   {
+    "seq": 10,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.writer",
+    "summary": "→ {\"content\": \"{\\\"text\\\": \\\"Le propongo una c...\", \"role\": \"assistant\"}",
+    "fault": null,
+    "deps": [
+     6,
+     7
+    ],
+    "violation": false,
+    "reconstructed": true,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 11,
+    "type": "call",
+    "kind": "user",
+    "name": "user.confirm",
+    "summary": "→ {\"action\": \"confirm\", \"text\": \"\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 12,
+    "type": "call",
+    "kind": "tool",
+    "name": "tool.confirm",
+    "summary": "→ null",
+    "fault": null,
+    "deps": [
+     11
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 13,
+    "type": "call",
+    "kind": "tool",
+    "name": "core.policy",
+    "summary": "→ {\"allowed\": true, \"obligations\": [], \"reason\": \"Propuesta vigente confirmad...\", \"references\": [\"RGPD art. 22\", \"AI Act art. 14\"], \"rule_id\": \"CMP-CONFIRM-01\"}",
+    "fault": null,
+    "deps": [
+     11,
+     12
+    ],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 14,
+    "type": "call",
+    "kind": "tool",
+    "name": "core.write",
+    "summary": "→ {\"at\": \"2026-11-02T08:00:00+00:00\", \"idempotency_key\": \"prop-290b18c919:r1\", \"operation\": \"book\", \"proposal_id\": \"prop-290b18c919\", \"result_id\": \"apt-0004\", \"status\": \"completed\"}",
+    "fault": null,
+    "deps": [
+     9,
+     11,
+     12
+    ],
+    "violation": true,
+    "reconstructed": false,
+    "kept": true,
+    "intent": null,
+    "operation": "book"
+   },
+   {
+    "seq": 15,
+    "type": "call",
+    "kind": "llm",
+    "name": "llm.personalization",
+    "summary": "→ {\"content\": \"{\\n  \\\"text\\\": \\\"Su cita de med...\", \"role\": \"assistant\"}",
+    "fault": null,
+    "deps": [
+     11
+    ],
+    "violation": false,
+    "reconstructed": true,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   },
+   {
+    "seq": 16,
+    "type": "call",
+    "kind": "user",
+    "name": "user.end",
+    "summary": "→ {\"action\": \"end\", \"text\": \"Perfecto, muchas gracias. Q...\"}",
+    "fault": null,
+    "deps": [],
+    "violation": false,
+    "reconstructed": false,
+    "kept": false,
+    "intent": null,
+    "operation": null
+   }
+  ],
+  "reduced_before": 16,
+  "reduced_after": 9,
+  "reexecuted": 12
+ },
+ "metrics": {
+  "found": 21,
+  "defective": 21,
+  "false_alarms": 0,
+  "correct": 9,
+  "record_us": 13.98,
+  "share_percent": 1.6,
+  "disk_bytes": 340,
+  "deterministic": true
+ },
+ "terminal": {
+  "explore": [
+   "Explored examples.portal_demo.scenario:reconciling (seed 0): baseline + 200 schedules of up to 2 faults, budget 200, 4.0s (50 runs/s)",
+   "Fault kinds (simulated): crash_after, lost_response, timeout",
+   "Call sites reached: portal.submit#1, portal.submit#2, portal.submit#3, portal.find#1, portal.find#2, portal.submit#4, portal.find#3",
+   "  schedules of 1 fault(s): explored 21 of 21 over the known sites",
+   "  schedules of 2 fault(s): explored 179 of 189 over the known sites",
+   "  space NOT exhausted: the budget ran out first",
+   "[property] no-blind-resubmit at portal.submit",
+   "   [no-blind-resubmit] at event #5: resubmits ('synthetic-candidate-1', 'job-42') after the uncertain outcome at #2 without reconciling first",
+   "   first at run 1 (0.15s), 22 run(s) in total; schedule: portal.submit:1:crash_after",
+   "   minimal schedule (1 -> 1 faults, 1 re-executions): portal.submit:1:crash_after",
+   "   trace of the minimal run reduced 5 -> 4 events",
+   "Only the schedules above were tried: a finding is a reproducible counterexample, but no finding does not show the system is correct."
+  ]
+ }
+}

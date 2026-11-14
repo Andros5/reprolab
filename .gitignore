@@ -10,3 +10,9 @@ dist/
 showcase.html
 .claude/
 reprolab-*.html
+video/node_modules/
+video/out/
+video/public/score.wav
+video/sound/.venv/
+video/sound/__pycache__/
+video/sound/source/
