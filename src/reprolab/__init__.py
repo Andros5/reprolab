@@ -1,5 +1,12 @@
 """ReproLab: record, replay and reduce failures of agent and automation workflows."""
 
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("reprolab")
+except PackageNotFoundError:  # running from a source tree that was not installed
+    __version__ = "0+unknown"
+
 from reprolab.events import (
     EFFECT_NONE,
     EFFECT_UNKNOWN,

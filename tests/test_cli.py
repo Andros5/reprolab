@@ -67,3 +67,17 @@ def test_errors_are_reported_without_tracebacks(db, capsys):
     run(capsys, "--db", db, "record", "examples.portal_demo.scenario:reconciling")
     code, out = run(capsys, "--db", db, "reduce", list_runs(db)[0]["id"])
     assert code == 1 and "no invariant is violated" in out
+
+
+def test_version_names_the_package_and_the_schema(capsys):
+    import pytest
+
+    from reprolab import __version__
+    from reprolab.cli import main
+    from reprolab.events import SCHEMA_VERSION
+
+    with pytest.raises(SystemExit) as exit_info:
+        main(["--version"])
+    assert exit_info.value.code == 0
+    out = capsys.readouterr().out.strip()
+    assert out == f"reprolab {__version__} (event schema v{SCHEMA_VERSION})"

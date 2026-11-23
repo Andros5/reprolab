@@ -19,7 +19,7 @@
   <a href="#quickstart">Quickstart</a> ·
   <a href="#real-failures-it-has-explained">Case studies</a> ·
   <a href="docs/README.md">Documentation</a> ·
-  <a href="https://github.com/Andros5/reprolab/releases/download/v1.0.0/reprolab-demo.mp4">Demo video (101 s)</a> ·
+  <a href="https://github.com/Andros5/reprolab/releases/download/v1.1.0/reprolab-demo.mp4">Demo video (101 s)</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
@@ -187,7 +187,7 @@ The `Session` is the only door to the outside. In record mode the real call runs
 
 ## Project status
 
-Version 1.0.0 is stable. Its five milestones are done: capture and offline replay, a versioned schema with reduction, a real investigation, the explorer, and differential replay. The event schema is versioned, and older recordings are migrated on read. The [changelog](CHANGELOG.md) lists what changed, and the [roadmap](docs/roadmap.md) lists what may come next.
+Version 1.1.0 is the current release. The five milestones of 1.0.0 are done: capture and offline replay, a versioned schema with reduction, a real investigation, the explorer, and differential replay. The event schema is versioned, and older recordings are migrated on read. The [changelog](CHANGELOG.md) lists what changed, and the [roadmap](docs/roadmap.md) lists what may come next.
 
 ## Contributing
 

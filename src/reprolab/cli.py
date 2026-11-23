@@ -12,6 +12,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from reprolab import __version__
 from reprolab.diff import first_divergence
 from reprolab.events import FAULT_KINDS, SCHEMA_VERSION, Event
 from reprolab.explore import PROPERTY, explore
@@ -263,6 +264,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="reprolab", description="Record, replay and reduce failures of workflows.")
     p.add_argument("--db", default=os.environ.get("REPROLAB_DB", DEFAULT_DB),
                    help=f"SQLite file with the runs (default: $REPROLAB_DB or {DEFAULT_DB})")
+    p.add_argument("--version", action="version",
+                   version=f"reprolab {__version__} (event schema v{SCHEMA_VERSION})")
     sub = p.add_subparsers(dest="command", required=True)
 
     s = sub.add_parser("record", help="run a scenario for real, with optional injected faults, and save it")

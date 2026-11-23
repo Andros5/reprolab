@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reprolab"
-version = "1.0.0"
+version = "1.1.0"
 description = "Record, replay and reduce failures of agent and automation workflows, and turn them into regression tests."
 readme = "README.md"
 requires-python = ">=3.11"

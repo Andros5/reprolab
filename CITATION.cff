@@ -13,8 +13,8 @@ authors:
 repository-code: "https://github.com/Andros5/reprolab"
 url: "https://github.com/Andros5/reprolab"
 license: MIT
-version: 1.0.0
-date-released: "2026-11-14"
+version: 1.1.0
+date-released: "2026-11-24"
 keywords:
   - record and replay
   - fault injection

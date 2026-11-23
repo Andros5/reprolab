@@ -10,7 +10,7 @@
 | H4 | A bounded explorer of fault schedules over the boundaries, with seeded scenarios, reduced counterexamples and metrics. |
 | H5 | Visual comparison, and differential replay against a new version of the code that detects the recordings that stop being compatible. |
 
-## Since 1.0.0
+## Added in 1.1.0
 
 - An investigation of the Swiss Job Radar's real submission path, using an adapter and no changes to the radar ([report](investigations/radar-submit.md)).
 - A one-file quickstart example and these guides.
