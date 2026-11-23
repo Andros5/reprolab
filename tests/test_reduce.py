@@ -6,7 +6,15 @@ from examples.portal_demo.applier import DRAFT, JOB_INFO, SUBMIT
 from examples.portal_demo.invariants import NAME, no_blind_resubmit
 from examples.portal_demo.scenario import INVARIANTS, record
 from reprolab import (
-    LOST_RESPONSE, RATE_LIMITED, Event, Fault, NotReproduced, Session, check, reduce_trace, reduce_violation,
+    LOST_RESPONSE,
+    RATE_LIMITED,
+    Event,
+    Fault,
+    NotReproduced,
+    Session,
+    check,
+    reduce_trace,
+    reduce_violation,
 )
 from reprolab.events import validate_trace
 

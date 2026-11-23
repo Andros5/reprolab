@@ -9,8 +9,8 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from reprolab.diff import first_divergence
 from reprolab.events import FAULT_KINDS, SCHEMA_VERSION, Event

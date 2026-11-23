@@ -18,13 +18,28 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Iterator
+from typing import Any
 
 from reprolab.events import (
-    CALL, CLOCK, CRASH_AFTER, DUPLICATE, EFFECT_NONE, EFFECT_UNKNOWN, FAULT_KINDS, INVALID_OUTPUT, LOST_RESPONSE,
-    RANDOM, RATE_LIMITED, RESTART, TIMEOUT, DependencyTracker, Event, normalize,
+    CALL,
+    CLOCK,
+    CRASH_AFTER,
+    DUPLICATE,
+    EFFECT_NONE,
+    EFFECT_UNKNOWN,
+    FAULT_KINDS,
+    INVALID_OUTPUT,
+    LOST_RESPONSE,
+    RANDOM,
+    RATE_LIMITED,
+    RESTART,
+    TIMEOUT,
+    DependencyTracker,
+    Event,
+    normalize,
 )
 
 RECORD = "record"
@@ -93,7 +108,7 @@ class Fault:
             raise ValueError("occurrence is 1-based")
 
     @classmethod
-    def parse(cls, text: str) -> "Fault":
+    def parse(cls, text: str) -> Fault:
         """Parse ``name:occurrence:kind``, for example ``portal.submit:1:lost_response``."""
         try:
             name, occurrence, kind = text.rsplit(":", 2)
@@ -129,11 +144,11 @@ class Session:
         self._op: str | None = None
 
     @classmethod
-    def record(cls, faults: list[Fault] | None = None, **kwargs) -> "Session":
+    def record(cls, faults: list[Fault] | None = None, **kwargs) -> Session:
         return cls(RECORD, faults=faults, **kwargs)
 
     @classmethod
-    def replay(cls, events: list[Event]) -> "Session":
+    def replay(cls, events: list[Event]) -> Session:
         return cls(REPLAY, events=events)
 
     @property

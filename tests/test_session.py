@@ -3,8 +3,20 @@ import socket
 import pytest
 
 from reprolab import (
-    EFFECT_NONE, EFFECT_UNKNOWN, LOST_RESPONSE, RATE_LIMITED, BoundaryError, Fault, NetworkBlocked,
-    Recording, ReplayDivergence, Session, load_run, list_runs, no_network, save_run,
+    EFFECT_NONE,
+    EFFECT_UNKNOWN,
+    LOST_RESPONSE,
+    RATE_LIMITED,
+    BoundaryError,
+    Fault,
+    NetworkBlocked,
+    Recording,
+    ReplayDivergence,
+    Session,
+    list_runs,
+    load_run,
+    no_network,
+    save_run,
 )
 from reprolab.store import UnsupportedSchema
 

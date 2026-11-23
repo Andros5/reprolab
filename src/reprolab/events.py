@@ -11,8 +11,9 @@ fields and out-of-range values are errors, never silently ignored.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 SCHEMA_VERSION = 3
 READABLE_VERSIONS = (1, 2, 3)  # older recordings are migrated on read
@@ -101,12 +102,12 @@ class Event:
         return json.dumps(self.to_dict(), sort_keys=True, ensure_ascii=False)
 
     @classmethod
-    def from_dict(cls, data: Any) -> "Event":
+    def from_dict(cls, data: Any) -> Event:
         validate_event_dict(data)
         return cls(**{**data, "deps": tuple(data["deps"])})
 
     @classmethod
-    def from_json(cls, text: str) -> "Event":
+    def from_json(cls, text: str) -> Event:
         return cls.from_dict(json.loads(text))
 
     def describe(self) -> str:

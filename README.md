@@ -1,182 +1,202 @@
-# ReproLab
+<p align="center">
+  <img src="docs/assets/banner.png" alt="ReproLab: a flight recorder for agent workflows" width="100%">
+</p>
 
-[![Checks](https://github.com/Andros5/reprolab/actions/workflows/ci.yml/badge.svg)](https://github.com/Andros5/reprolab/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Andros5/reprolab)](https://github.com/Andros5/reprolab/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/Andros5/reprolab/actions/workflows/ci.yml"><img src="https://github.com/Andros5/reprolab/actions/workflows/ci.yml/badge.svg" alt="Checks"></a>
+  <a href="https://github.com/Andros5/reprolab/releases/latest"><img src="https://img.shields.io/github/v/release/Andros5/reprolab" alt="Release"></a>
+  <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB" alt="Python 3.11 to 3.13">
+  <img src="https://img.shields.io/badge/runtime%20dependencies-0-brightgreen" alt="Zero runtime dependencies">
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/lint-ruff-261230" alt="Linted with ruff"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT licence"></a>
+</p>
 
-Record, replay and reduce failures of agent and automation workflows, and turn them into regression tests for business properties.
+<p align="center">
+  <b>Record, replay and reduce the failures of agents and automations,<br>and keep each one as a regression test for a business property.</b>
+</p>
 
-**Status:** version 1.0.0, milestones H1–H5 complete. Python standard library and SQLite, no external services.
+<p align="center">
+  <a href="#quickstart">Quickstart</a> ·
+  <a href="#real-failures-it-has-explained">Case studies</a> ·
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="https://github.com/Andros5/reprolab/releases/download/v1.0.0/reprolab-demo.mp4">Demo video (101 s)</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
-**[Watch the 101-second demo video](https://github.com/Andros5/reprolab/releases/download/v1.0.0/reprolab-demo.mp4)**. It has no voice-over, and every trace and number in it comes from real runs. It was made with code in [video/](video/).
+---
 
-```bash
-python -m examples.showcase        # runs every case live and writes showcase.html: one page, no dependencies
-```
+An agent submits a job application. The portal stores it, but the response is lost on the way back. The agent retries, and now there are two applications. In production, a failure like this is rare, and it seldom happens again when someone looks for it. **ReproLab makes it happen on purpose, records it, replays it offline, shrinks it to the few events that explain it, and turns it into a test that fails until the code is fixed.**
 
-| Read | For |
+<p align="center">
+  <img src="docs/assets/reduce.gif" alt="A 15-event trace shrinks to the 6 events the violation needs" width="88%">
+  <br><sub>Delta debugging keeps the same property violated at the same event, and never drops an event that a kept one depends on.</sub>
+</p>
+
+## Why ReproLab
+
+Agents and automations fail at their **boundaries**: an HTTP call whose answer never arrives, a rate limit, a model that answers the same request differently, a worker that dies right after a write. These failures are rare, hard to reproduce and easy to misdiagnose. ReproLab instruments exactly those boundaries and nothing else, so it works on real code with a few lines of change.
+
+| | What you get |
 |---|---|
-| [Architecture](docs/architecture.md) | The pieces and how one failure flows through them |
-| [Design decisions](docs/design-decisions.md) | Three choices, their alternatives and the evidence they paid off |
-| [CitaLab investigation](docs/investigations/citalab-r02.md) | A real agent failure, from the logs |
-| [Measured results](docs/metrics.md) | Seeded regressions, determinism, instrumentation overhead |
-| [Pitch](docs/interview/pitch.md) · [demo script](docs/interview/demo-script.md) | The project in 30 seconds, 2 minutes and 3 minutes |
+| 🎥 **Record** | Every external call, clock reading and random token, with its outcome and what the caller can know about side effects (`effect: none \| unknown`). |
+| ⏪ **Replay offline** | The same code runs against the recording with the network disabled: same trace, same verdict. |
+| 💥 **Inject faults** | Lost response, 429, timeout, duplicate delivery, invalid output, crash after the call took effect. Every injected fault is marked `simulated`. |
+| ✂️ **Reduce** | Dependency-aware delta debugging down to a 1-minimal trace that still violates the same property at the same event. |
+| 🧭 **Explore** | Seeded, coverage-guided search over fault schedules. Same seed, same findings. Counterexamples are minimised by re-execution. |
+| 🔁 **Regress** | Stored failures replay against new code; the ones that no longer match say at which event, and are re-recorded under the same faults. |
+| 🔍 **Diff and view** | First divergence between two runs, and self-contained HTML reports in a flight-recorder style. |
+| 📜 **Evidence** | Runs rebuilt from another system's logs cite a file, a JSON pointer and a SHA-256 for every event. |
 
-## The demo
+All of it uses the Python standard library and SQLite. There are no runtime dependencies and no external services.
+
+## Quickstart
 
 ```bash
+git clone https://github.com/Andros5/reprolab.git && cd reprolab
 python -m venv .venv
-.venv/Scripts/python -m pip install -e ".[dev]"   # bin/python on Linux/macOS
-.venv/Scripts/python -m examples.portal_demo
+.venv/Scripts/python -m pip install -e ".[dev]"     # .venv/bin/python on Linux and macOS
+python -m examples.quickstart
 ```
 
-A client submits a job application to a fake portal running on localhost. ReproLab injects a **lost response**: the portal stores the application, but the client never sees the confirmation.
+[`examples/quickstart.py`](examples/quickstart.py) pays an invoice through an external service and loses the first response on purpose:
 
-1. **Blind retry client.** It submits again, and the portal now holds two applications. The property *no blind resubmit* is checked on the recorded trace and flags event #4.
-2. **Offline replay.** The saved recording is replayed with the network disabled. It produces the same trace, the same result and the same violation.
-3. **Reconciling client.** Under the same fault it looks the application up before doing anything else. The property holds, and the portal keeps exactly one application.
-4. **Reduction.** A longer flow reads the job posting, drafts a cover letter with an LLM call (a stub; no model is called) and logs to telemetry. It suffers a lost response and then a rate limit. Its 15-event trace reduces to the 6 events the violation needs. The posting and the draft stay in, because the submissions use their output.
+```text
+naive        result {'charge_id': 2}  real charges 2
+             [charge-at-most-once] at event #2: charges again after #1 without checking
+             offline replay: identical, 1 violation(s)
 
-This mirrors the Swiss Job Radar's `submission_unknown` state. That state is a correct safeguard, and the blind-retry client is a deliberately defective variant that shows what the safeguard prevents. All data is synthetic.
+reconciling  result {'state': 'already charged'}  real charges 1
+             offline replay: identical, 0 violation(s)
+```
 
-## A real failure: CitaLab N-R02
-
-[CitaLab](https://github.com/Andros5/citalab) is a public, conversational assistant for synthetic healthcare appointments, evaluated in a master's thesis. In 9 of 12 episodes, a request to move an appointment ended with a new one, although every safety check passed. [The investigation](docs/investigations/citalab-r02.md) rebuilds those episodes as ReproLab traces, with every event citing its evidence. It keeps four levels apart: what the original logs show, what re-executing the evaluated code reproduces, what remains a hypothesis, and what is undetermined.
+The reconciling version survives that fault. Let the explorer look for the faults it does not survive:
 
 ```bash
-python -m examples.citalab_r02 --no-reexecute
+reprolab explore examples.quickstart:reconciling --budget 50
 ```
 
-- **Property.** A reschedule must replace its target. Checked on the traces, it agrees with CitaLab's own oracle in 12 of 12 episodes.
-- **Identical requests, different answers.** Gemini's context agent received a byte-identical recorded request in 4 episodes and answered "reschedule" once and "book" three times. `reprolab diff` shows that the successful and the failed episode are identical up to that answer.
-- **Re-execution.** CitaLab's evaluated code, re-executed offline against the recorded model answers, reproduces all 12 episodes: the same requests, events, replies and final agenda. A counterfactual run with the other interpretation moves the appointment instead. It is reported as a hypothesis test, with its assumptions.
-- **Reduction.** Each failure reduces to its causal chain: user message → interpretation `book` → proposal → confirmation → write.
+```text
+[property] charge-at-most-once at bank.charge
+   minimal schedule (1 -> 1 faults, 1 re-executions): bank.charge:1:crash_after
+[unhandled] KeyError after bank.find
+   minimal schedule (2 -> 2 faults, 2 re-executions): bank.charge:1:lost_response, bank.find:1:invalid_output
+[oracle-only] 2 charges for one invoice
+   minimal schedule (1 -> 1 faults, 1 re-executions): bank.charge:1:duplicate
+Only the schedules above were tried: a finding is a reproducible counterexample,
+but no finding does not show the system is correct.
+```
 
-## Finding failures: the explorer
+It finds three problems in 50 runs. A crash right after the charge makes the restarted worker forget it and charge again. A malformed lookup is not handled. A duplicate delivery charges twice without anything on the trace to show it, so only the real state (the oracle) reveals it. Each finding is stored as a run you can replay, view and keep as a regression test.
+
+## Use it on your code
+
+Three steps. Route the boundary through the session, state the property on the trace, and wrap both in a `Scenario`:
+
+```python
+from reprolab import BoundaryError, Scenario, Violation
+
+def pay(session, bank):
+    try:
+        return session.call("bank.charge", INVOICE, bank.charge)   # recorded, replayable, faultable
+    except BoundaryError as error:
+        ...                                                         # error.effect says what the caller can know
+
+def charge_at_most_once(events) -> list[Violation]:
+    ...                                                             # reads the trace only
+
+pay_invoice = Scenario(name="pay", run=pay, invariants=(charge_at_most_once,),
+                       live=start_real_or_local_service, offline=Unreachable)
+```
 
 ```bash
-reprolab explore examples.portal_demo.scenario:reconciling --seed 0 --budget 200
+reprolab record   my_module:pay_invoice --fault bank.charge:1:lost_response
+reprolab replay   <run>                    # offline; exit 1 on divergence
+reprolab reduce   <run>                    # shrink to the events the violation needs
+reprolab explore  my_module:pay_invoice    # exit 1 if a business property can be violated
+reprolab regress  --target my_module:pay_invoice_v2
+reprolab html     <run> --compare <other-run>
 ```
 
-The explorer runs a scenario under many fault schedules against the real local portal, checks the business property on every trace, and reduces what fails.
+There is a [step-by-step guide](docs/getting-started.md) and a [full CLI reference](docs/cli.md).
 
-- **Faults.** Six kinds, all marked as simulated: lost response, 429, timeout (the request never arrives, which the caller cannot tell from a lost response), duplicate delivery, invalid output, and a worker crash right after a call takes effect. After a crash the code restarts with its durable state and an empty memory, and replay reproduces the crash and the restart.
-- **Bounded and seeded search.** Call sites are discovered from the runs: retries and lookups only appear under faults. The order of the search:
-  1. every single fault;
-  2. coverage-guided pairs: a schedule that opened new sites is extended with a fault on each of them;
-  3. the remaining schedules, in an order fixed by the seed.
+<p align="center">
+  <img src="docs/assets/report.png" alt="ReproLab HTML report: a lost response caught by a property" width="88%">
+  <br><sub><code>reprolab html</code> and <code>python -m examples.showcase</code> write self-contained pages like this one. Hatched marks are simulated faults; arcs are dependencies.</sub>
+</p>
 
-  The same seed gives the same schedules and findings. The report always states how much of the space it covered.
-- **Verdicts.** Property violation on the trace; failure only the oracle sees (real state wrong, trace clean); unhandled exception.
-- **Counterexamples.** The first schedule of each finding is reduced by re-execution: faults are removed one at a time, recording again each time. Then its trace is reduced. Both runs are stored and replay offline. `explore` exits with 1 when a business property was violated, so it can gate a build.
+## Real failures it has explained
 
-**Seeded regressions.** Five client variants with known labels are scored with the same budget ([measured results](docs/metrics.md)):
+### 🗓️ CitaLab: a reschedule that created a second appointment
 
-- `blind_retry` retries anything.
-- `retry_on_find_error` resubmits when the reconciling lookup fails.
-- `reconciles_once` is blind on a second uncertain outcome, so it needs two faults to show.
-- `reconciling` is correct within one process but forgets an uncertain submission when the worker crashes.
-- `journaled` records "pending" durably before submitting and reconciles on restart, like the Swiss Job Radar's `submission_unknown`.
+[CitaLab](https://github.com/Andros5/citalab) is a public, conversational assistant for synthetic healthcare appointments, evaluated in a master's thesis. In 9 of 12 episodes, a request to move an appointment created a new one, although every safety check passed. [The investigation](docs/investigations/citalab-r02.md) rebuilds those episodes from the logs with cited evidence:
 
-## Old failures as tests for new code
+- The property *a reschedule must replace its target* agrees with CitaLab's own oracle in **12 of 12** episodes.
+- The model received a **byte-identical** request in 4 episodes. It answered "reschedule" once and "book" three times, and `reprolab diff` shows that the runs are identical up to that answer.
+- Re-executing CitaLab's evaluated code against the recorded answers reproduces **12 of 12** episodes.
+- Each failure reduces to its causal chain: interpretation `book` → proposal → confirmation → write.
+
+### 📮 Swiss Job Radar: a real submission path, unchanged
+
+ReproLab was put around the radar's real `send()` [without changing a single radar line](docs/investigations/radar-submit.md). It took a 220-line adapter, and the radar's 366 tests still pass. There was no second click under any of 240 schedules of up to two faults per restart model. One finding remains: a crash after the click leaves the state `sending`, which reconciliation refuses until the web server restarts.
+
+### 🧪 The portal demo: seeded defects, measured
 
 ```bash
-reprolab regress --target examples.portal_demo.scenario:journaled
-reprolab html <run> --compare <new-run> --ignore-nondeterminism
+python -m examples.portal_demo      # record, replay offline, reduce
+python -m examples.showcase         # every case, run live, on one HTML page
 ```
 
-`regress` replays every stored recording against a new version of the code:
+Five client variants with known defects were each explored with a budget of 200 and seeds 0–2 ([metrics](docs/metrics.md)). The explorer found a defect in **21 of 21** explorations of a defective variant, with **0 false alarms** in 9 explorations of a correct one, and identical findings per seed. Each counterexample reduces to 4 events. Recording a boundary call costs about 14 µs.
 
-- **Compatible.** A recording the new code still matches replays offline and gives its verdict.
-- **Incompatible.** A recording it no longer matches is marked *incompatible from event #k*, with the reason. It is then recorded again under the same fault plan, against the local environment.
+<p align="center">
+  <img src="docs/assets/regress.png" alt="reprolab regress: stored failures replayed against the fixed client" width="88%">
+</p>
 
-Each recording gets a verdict: **fixed**, **still failing**, **regressed** or **still passing**. The command exits with 1 while anything still fails, so the library of past incidents can gate a build. When it compares old and new traces, random tokens and clock readings are matched by order of appearance, so the first difference it reports is a change in behaviour, not a new random id.
+## Limits, stated up front
 
-`html` draws any run as a flight-recorder strip:
+- **Replay reuses recorded outcomes.** It does not show that a model or a service would answer the same way again.
+- **Injected faults are simulations**, marked `fault.simulated: true` in every event. A crash is modelled only at a boundary, after the call took effect.
+- **A clean exploration is not a proof of correctness.** The explorer covers the schedules it reports, and says how much of the space that was.
+- **Determinism covers instrumented boundaries only.** Threads, the OS and uninstrumented I/O are out of scope.
+- **A reduced trace is 1-minimal, not a global minimum**, and it is a regression fixture, not an execution.
+- **A reconstructed run is only as good as the logs it comes from**, and every derived event names the rule that produced it.
 
-- solid marks are observed, diagonal hatching marks a simulated fault, and a dashed outline marks an event reconstructed from logs;
-- arcs in the margin are dependencies;
-- clicking an event shows its request, outcome and evidence.
-
-It also draws two runs side by side from their first divergence, and a reduction with the dropped events faded.
-
-## Command line
-
-```bash
-reprolab record examples.portal_demo.scenario:blind_retry_full \
-    --fault portal.submit:1:lost_response --fault portal.submit:2:rate_limited
-reprolab list
-reprolab show <run>             # header, trace, dependencies, violations
-reprolab replay <run>           # re-run the recorded code offline; exit 1 on divergence
-reprolab reduce <run>           # saves a new, reduced run; the original is kept
-reprolab diff <run-a> <run-b>   # first event where two runs diverge, and whether the request or only the answer differs
-reprolab explore <target> --seed 0 --budget 200 [--max-faults 2] [--kinds ...] [--report out.json]
-reprolab regress --target <new-target> [--from <old-target>] [--runs a,b] [--report out.json]
-reprolab html <run> [--compare <run>] [--ignore-nondeterminism] [-o page.html]
-reprolab export <run> -o run.json
-```
-
-Runs are stored in `./reprolab.db` (or `--db`, or `$REPROLAB_DB`). A run can be named by a unique prefix of its id. `replay --target` runs a recording against other code, for example a fixed client, and reports the first point where it diverges.
+The [complete list](docs/limits.md) has the rest.
 
 ## How it works
 
-- **Boundaries.** Code routes external interactions through a `Session`: `session.call(name, request, fn)`, `session.now()` and `session.token()`. `session.operation(id)` groups the events of one business operation.
-- **Recording.** In record mode the real function runs, optionally with an injected fault. The outcome is stored as an event: the result, or the error together with what the caller can know about side effects (`effect: none | unknown`).
-- **Schema.** Events and runs follow a versioned, strictly validated schema ([docs/schema.md](docs/schema.md)). A frozen v3 recording in the tests must round-trip byte for byte and still replay. Older recordings (v1 from H1, v2 from H2) are migrated on read.
-- **Evidence.** A run rebuilt from another system's logs has `origin: reconstructed`, and each of its events cites its source: a file, a JSON pointer and a SHA-256. An event copied verbatim says so; an event derived by a rule states the rule.
-- **Dependencies.** Each event lists the earlier events it depends on. They are inferred when a value one event produced (a token, an id, a drafted text, a timestamp) reappears in a later request, and can also be declared explicitly.
-- **Replay.** In replay mode nothing external runs. Each call must match the next recorded event, or a `ReplayDivergence` explains the difference. Recorded outcomes are returned or raised again.
-- **Invariants.** Invariants read only the trace, so the original run and every replay get the same verdict. The portal's real state serves as a separate oracle while recording.
-- **First divergence.** `diff` compares two runs event by event. It reports where they first differ: a different call, the same call with a different request, or the same request with a different answer. The last case is the signature of non-determinism on the other side of the boundary.
-- **Differential replay.** `regress` replays stored recordings against new code, says where each stops matching, and re-records the incompatible ones under the same faults.
-- **Exploration.** See [the explorer](#finding-failures-the-explorer): bounded, seeded, coverage-guided schedules of injected faults, with counterexamples reduced by re-execution.
-- **Reduction.** Delta debugging (ddmin) over the events of a trace. Each candidate is closed under dependencies, so an event is never kept without the events it uses. A candidate is accepted only if the same invariant is still violated **at the same event**, so the search cannot slide to a different failure. The result is saved as a new run with `origin: reduced` and its provenance.
+```mermaid
+flowchart LR
+    W["your code"] -- "call · now · token" --> S["Session<br/>record · replay · faults"]
+    S -- "record mode" --> EXT["outside world"]
+    S --> E["events v3<br/>deps · faults · evidence"] --> DB[("SQLite")]
+    DB --> I["invariants"] & R["reduce"] & D["diff"] & G["regress"] & H["html"]
+    X["explore"] -- "fault schedules" --> S
+```
 
-## Measured so far
+The `Session` is the only door to the outside. In record mode the real call runs, with an optional injected fault, and its outcome becomes an event. In replay mode nothing external runs: each call must match the next event, or a `ReplayDivergence` says how it differs. Invariants read only the trace, so the original run and every replay get the same verdict. The [architecture](docs/architecture.md), [concepts](docs/concepts.md) and [design decisions](docs/design-decisions.md) cover the rest.
 
-- **Portal demo, longer flow:** the trace reduces from 15 to 6 events, after 55 distinct candidates, in a few milliseconds.
-- **CitaLab N-R02, 12 real episodes:**
-  - the property agrees with CitaLab's oracle in 12 of 12;
-  - re-execution reproduces 12 of 12;
-  - the 9 failures reduce from 15–25 events to 9–17.
+## Documentation
 
-- **Explorer, seeded regressions** (budget 200, seeds 0–2, [details](docs/metrics.md)):
-  - defects found in 21 of 21 explorations of a defective variant, with 0 false alarms in 9 explorations of a correct one;
-  - with crashes in the fault set, a single `crash_after` exposes every defective variant within 6 runs;
-  - without crashes, the two defects that need two faults are found after 26 and 41 runs, every seed alike, because the coverage-guided extensions come before the seeded random part;
-  - each counterexample's trace reduces to 4 events;
-  - about 35 runs per second, each against a fresh local portal;
-  - the same seed gives identical schedules and findings.
-- **Swiss Job Radar, real `send()` ([report](docs/investigations/radar-submit.md)):** 0 radar lines changed, 220 adapter lines, the radar's 366 tests still pass; no second click under any of 240 schedules of up to 2 faults per restart model, but a crash after the click leaves `sending`, which `/reconcile` refuses until the web server restarts.
-- **Instrumentation:** recording a boundary call costs about 14 µs, 1.6% of a lookup to the local portal over HTTP; a stored event takes about 340 bytes in SQLite.
+| Guide | Reference | Background |
+|---|---|---|
+| [Getting started](docs/getting-started.md) | [CLI](docs/cli.md) | [Architecture](docs/architecture.md) |
+| [Concepts](docs/concepts.md) | [Event schema v3](docs/schema.md) | [Design decisions](docs/design-decisions.md) |
+| [The explorer](docs/explorer.md) | [Limits](docs/limits.md) | [Measured results](docs/metrics.md) |
+| [Regression and reports](docs/regress.md) | [Changelog](CHANGELOG.md) | [Investigations](docs/investigations/) |
 
-These numbers describe these cases only; they are not a benchmark.
+## Project status
 
-## Limits (by design)
+Version 1.0.0 is stable. Its five milestones are done: capture and offline replay, a versioned schema with reduction, a real investigation, the explorer, and differential replay. The event schema is versioned, and older recordings are migrated on read. The [changelog](CHANGELOG.md) lists what changed, and the [roadmap](docs/roadmap.md) lists what may come next.
 
-- Determinism covers only the instrumented boundaries: calls, clock and random tokens. Threads, the OS and uninstrumented I/O are out of scope.
-- Replay reuses recorded outcomes. It does not show that an LLM or a service would answer the same way again.
-- Injected faults are simulations and are marked as such in each event (`fault.simulated: true`).
-- By default, an unexpected exception counts as `effect: unknown`, which is the conservative choice. Adapters can classify errors more precisely.
-- Inferred dependencies follow data flow only. Control flow must be declared explicitly.
-- A reduced trace is **1-minimal, not a global minimum**: removing any one remaining event, together with what depends on it, loses the violation.
-- A reconstructed run is only as good as the logs it comes from. Derived events say which rule produced them, and `replay` refuses such runs: they are replayed by re-executing the original system's code through an adapter.
-- `regress` re-applies a recording's faults by call name and occurrence. If the new code calls differently, a planned fault can land on a different step or not fire at all, so the report lists the faults planned and the faults that fired.
-- `diff` compares values exactly. Provider-generated ids count as differences, so the first difference it reports can be noise and has to be read.
-- A reduced trace is **a trace, not an execution**. It isolates what the property needs to see and serves as a regression fixture, but the original code would not necessarily produce it, so `replay` refuses it. The explorer's reduction of fault schedules does re-execute, so its minimal counterexamples are real runs.
-- The explorer covers the schedules it reports and nothing else. A clean exploration is not a proof of correctness. Faults are injected only at instrumented boundaries, and only into scenarios that can run against a local environment; CitaLab, for example, would need real model calls.
-- A crash is simulated at a boundary, after the call took effect. Crashes elsewhere, such as halfway through writing local state, are not modelled.
+## Contributing
 
-## Roadmap
+Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md), which covers the development setup, the checks CI runs and the project's standards for claims and evidence. Security issues go through [SECURITY.md](SECURITY.md).
 
-| Milestone | Done when |
-|---|---|
-| H1 | Local portal, capture, offline replay, and a test that tells the correct implementation from the defective one ✅ |
-| H2 | Stable versioned schema, a record/replay CLI, and a reduction that keeps the same violated property ✅ |
-| H3 | A documented investigation of a real agent failure (CitaLab), separating original evidence from reconstructions ✅ |
-| H4 | A bounded explorer of fault schedules over the boundaries, with seeded scenarios, reduced counterexamples and metrics ✅ |
-| H5 | Visual comparison and differential replay against a new version of the code, detecting the recordings that stop being compatible ✅ |
+## Citing
+
+If ReproLab helps your work, GitHub's **Cite this repository** button uses [CITATION.cff](CITATION.cff).
 
 ## Licence
 
-Code: [MIT](LICENSE). The CitaLab evidence in `examples/citalab_r02/data/` is synthetic data under CC BY 4.0, copied verbatim with attribution. The demo video's music is “Ethereal” by Amarent, under CC BY 4.0 (see [video/README.md](video/README.md)).
+The code is under the [MIT licence](LICENSE). The CitaLab evidence in `examples/citalab_r02/data/` is synthetic data under CC BY 4.0, copied verbatim with attribution. The demo video's music is “Ethereal” by Amarent, under CC BY 4.0 (see [video/README.md](video/README.md)).

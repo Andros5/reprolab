@@ -16,7 +16,6 @@ Writes docs/metrics.md and docs/metrics.json. Timings depend on the machine.
 from __future__ import annotations
 
 import json
-from contextlib import closing
 import platform
 import sqlite3
 import statistics
@@ -24,6 +23,7 @@ import sys
 import tempfile
 import time
 import tracemalloc
+from contextlib import closing
 from pathlib import Path
 
 from examples.portal_demo.applier import LABELS, PortalClient

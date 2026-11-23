@@ -11,12 +11,19 @@ import sqlite3
 import uuid
 from contextlib import closing
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from reprolab.events import (
-    READABLE_VERSIONS, SCHEMA_VERSION, Event, SchemaError, infer_deps, migrate_v1, migrate_v2, validate_trace,
+    READABLE_VERSIONS,
+    SCHEMA_VERSION,
+    Event,
+    SchemaError,
+    infer_deps,
+    migrate_v1,
+    migrate_v2,
+    validate_trace,
 )
 
 SCHEMA = """
@@ -98,7 +105,7 @@ class Recording:
         return json.dumps(doc, sort_keys=True, ensure_ascii=False, indent=2) + "\n"
 
     @classmethod
-    def from_doc(cls, text: str) -> "Recording":
+    def from_doc(cls, text: str) -> Recording:
         doc = json.loads(text)
         if not isinstance(doc, dict) or set(doc) != {"schema_version", "run", "events"}:
             raise SchemaError("a recording document has exactly: schema_version, run, events")
@@ -125,7 +132,7 @@ def save_run(path: str | Path, recording: Recording) -> str:
     """Validate and store a recording; returns its new run id."""
     recording.validate()
     run_id = uuid.uuid4().hex[:12]
-    created = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    created = datetime.now(UTC).isoformat(timespec="seconds")
     with closing(_connect(path)) as db, db:
         db.execute("INSERT INTO runs VALUES(?,?,?,?,?)",
                    (run_id, created, recording.label, SCHEMA_VERSION,

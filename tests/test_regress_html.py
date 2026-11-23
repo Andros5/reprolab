@@ -12,7 +12,15 @@ from reprolab import scenario as rl
 from reprolab.cli import main as cli
 from reprolab.diff import DIFFERENT_CALL, first_divergence, normalize_nondeterminism
 from reprolab.regress import (
-    COMPATIBLE, FIXED, INCOMPATIBLE, NOT_REPLAYABLE, REGRESSED, STILL_FAILING, STILL_PASSING, UNKNOWN, regress,
+    COMPATIBLE,
+    FIXED,
+    INCOMPATIBLE,
+    NOT_REPLAYABLE,
+    REGRESSED,
+    STILL_FAILING,
+    STILL_PASSING,
+    UNKNOWN,
+    regress,
 )
 from reprolab.store import REDUCED, list_runs
 

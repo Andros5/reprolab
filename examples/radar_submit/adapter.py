@@ -27,10 +27,11 @@ import os
 import re
 import shutil
 import tempfile
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from reprolab.session import Session
 
@@ -91,14 +92,14 @@ class FakePage:
     def goto(self, url: str, wait_until: str | None = None) -> None:
         self.url, self.body, self.values = url, FORM_TEXT, {}
 
-    def locator(self, selector: str) -> "_Locator":
+    def locator(self, selector: str) -> _Locator:
         return _Locator(self, selector)
 
-    def get_by_role(self, role: str, name: re.Pattern) -> "_Button":
+    def get_by_role(self, role: str, name: re.Pattern) -> _Button:
         assert role == "button"
         return _Button(self, 1 if name.search(BUTTON) else 0)
 
-    def get_by_text(self, pattern: re.Pattern) -> "_Text":
+    def get_by_text(self, pattern: re.Pattern) -> _Text:
         return _Text(self, pattern)
 
 
@@ -114,7 +115,7 @@ class _Locator:
         assert self.selector == "body", self.selector
         return self.page.body
 
-    def nth(self, index: int) -> "_Field":
+    def nth(self, index: int) -> _Field:
         return _Field(self.page, FORM[index]["name"])
 
     def count(self) -> int:
@@ -156,7 +157,7 @@ class _Text:
     pattern: re.Pattern
 
     @property
-    def first(self) -> "_Text":
+    def first(self) -> _Text:
         return self
 
     def wait_for(self, timeout: int | None = None) -> None:

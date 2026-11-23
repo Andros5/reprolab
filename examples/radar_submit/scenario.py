@@ -20,11 +20,19 @@ synthetic portal (what it received). It is read after recording and never replay
 from __future__ import annotations
 
 import atexit
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any, Iterator
+from typing import Any
 
 from examples.radar_submit.adapter import (
-    FakePage, OfflinePortal, RadarEnv, SyntheticPortal, db_state, inside, radar_env, restart_web,
+    FakePage,
+    OfflinePortal,
+    RadarEnv,
+    SyntheticPortal,
+    db_state,
+    inside,
+    radar_env,
+    restart_web,
 )
 from examples.radar_submit.invariants import no_resend_after_uncertain
 from reprolab import BoundaryError, Scenario, no_network

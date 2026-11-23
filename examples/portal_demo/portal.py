@@ -36,7 +36,7 @@ class Portal:
         host, port = self._server.server_address[:2]
         return f"http://{host}:{port}"
 
-    def start(self) -> "Portal":
+    def start(self) -> Portal:
         portal = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -85,7 +85,7 @@ class Portal:
             self._server.server_close()
             self._server = None
 
-    def __enter__(self) -> "Portal":
+    def __enter__(self) -> Portal:
         return self.start()
 
     def __exit__(self, *exc) -> None:

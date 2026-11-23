@@ -6,8 +6,8 @@ trace, it gives the same verdict on the original run and on any offline replay.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from reprolab.events import Event
 
