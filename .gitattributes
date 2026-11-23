@@ -1,3 +1,6 @@
 # Evidence and frozen fixtures are compared byte for byte: never convert line endings.
 examples/citalab_r02/data/** -text
 tests/fixtures/** -text
+
+# The demo video is a Remotion project, not part of the library: keep it out of the language stats.
+video/** linguist-documentation
