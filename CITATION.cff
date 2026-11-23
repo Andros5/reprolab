@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use ReproLab, please cite it as below."
+type: software
+title: "ReproLab: record, replay and reduce failures of agent and automation workflows"
+abstract: >-
+  ReproLab records what an agent or automation does at its boundaries, replays it offline,
+  injects simulated faults, explores fault schedules with a fixed seed, reduces failures to
+  1-minimal traces that keep the same violated business property, and replays stored failures
+  against new code as regression tests. Python standard library and SQLite only.
+authors:
+  - alias: Andros5
+    website: "https://github.com/Andros5"
+repository-code: "https://github.com/Andros5/reprolab"
+url: "https://github.com/Andros5/reprolab"
+license: MIT
+version: 1.0.0
+date-released: "2026-11-14"
+keywords:
+  - record and replay
+  - fault injection
+  - delta debugging
+  - agents
+  - reproducibility
+  - regression testing

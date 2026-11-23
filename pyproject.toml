@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,18 +8,56 @@ version = "1.0.0"
 description = "Record, replay and reduce failures of agent and automation workflows, and turn them into regression tests."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Andros5" }]
+keywords = ["record-replay", "fault-injection", "delta-debugging", "agents", "llm", "reproducibility",
+            "regression-testing", "property-based-testing"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Debuggers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Andros5/reprolab"
+Documentation = "https://github.com/Andros5/reprolab/blob/main/docs/README.md"
+Changelog = "https://github.com/Andros5/reprolab/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Andros5/reprolab/issues"
 
 [project.scripts]
 reprolab = "reprolab.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+reprolab = ["py.typed"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["video"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+# E501: long lines are allowed where they read better (tables, messages).
+# B905: zip() without strict= is intentional where lengths may differ.
+ignore = ["E501", "B905", "E731"]

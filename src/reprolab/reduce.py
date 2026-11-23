@@ -19,8 +19,8 @@ Guarantees and limits:
 from __future__ import annotations
 
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Callable, Iterable
 
 from reprolab.events import Event, SchemaError, validate_trace
 from reprolab.invariants import Invariant, Violation, check

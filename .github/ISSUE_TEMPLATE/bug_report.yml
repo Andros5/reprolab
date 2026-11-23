@@ -1,0 +1,43 @@
+name: Bug report
+description: Something in ReproLab does not behave as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The most useful report has a command that reproduces the problem.
+        Please remove anything private from traces or exported runs before pasting them.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Commands, a minimal scenario, or a run exported with `reprolab export <run> -o run.json`.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ReproLab version
+      placeholder: "1.0.0 or a commit hash"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Python and operating system
+      placeholder: "Python 3.12, Ubuntu 24.04"
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Relevant output
+      render: text

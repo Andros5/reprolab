@@ -1,7 +1,11 @@
 """First divergence between two traces."""
 
 from reprolab.diff import (
-    DIFFERENT_CALL, DIFFERENT_REQUEST, LENGTH, SAME_REQUEST_DIFFERENT_OUTCOME, first_divergence,
+    DIFFERENT_CALL,
+    DIFFERENT_REQUEST,
+    LENGTH,
+    SAME_REQUEST_DIFFERENT_OUTCOME,
+    first_divergence,
 )
 from reprolab.events import Event
 

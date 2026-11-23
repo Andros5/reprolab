@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a capability, an adapter or an example.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Which failure or workflow is hard to record, reproduce or explain today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: What ReproLab could do about it, and how you would check that it works.
+    validations:
+      required: true
+  - type: textarea
+    id: limits
+    attributes:
+      label: Limits and alternatives
+      description: What it would not cover, and other ways to get there. The core stays dependency-free.

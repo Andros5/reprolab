@@ -30,10 +30,11 @@ from __future__ import annotations
 import itertools
 import random
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from math import comb
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any
 
 from reprolab import scenario as rl
 from reprolab.events import CALL, FAULT_KINDS, RESTART, Event

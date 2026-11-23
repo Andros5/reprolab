@@ -9,7 +9,16 @@ import pytest
 
 from examples.portal_demo.scenario import INVARIANTS, blind_retry, blind_retry_full
 from reprolab import (
-    REDUCED, Event, Recording, ReplayDivergence, SchemaError, UnsupportedSchema, check, load_run, reduce_violation, save_run,
+    REDUCED,
+    Event,
+    Recording,
+    ReplayDivergence,
+    SchemaError,
+    UnsupportedSchema,
+    check,
+    load_run,
+    reduce_violation,
+    save_run,
 )
 from reprolab import scenario as rl
 

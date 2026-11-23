@@ -12,13 +12,18 @@ CLI targets:
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-
-from typing import Any, Iterator
+from typing import Any
 
 from examples.portal_demo.applier import (
-    IMPLEMENTATIONS, OfflineClient, OfflineTelemetry, PortalClient, Telemetry, apply_full,
+    IMPLEMENTATIONS,
+    OfflineClient,
+    OfflineTelemetry,
+    PortalClient,
+    Telemetry,
+    apply_full,
 )
 from examples.portal_demo.invariants import no_blind_resubmit
 from examples.portal_demo.portal import Portal

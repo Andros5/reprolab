@@ -141,11 +141,11 @@ def to_recording(ep: Episode) -> Recording:
         confirm_seq: int | None = None
         unused = list(turn_records)
 
-        def take(agent: str) -> tuple[int, dict]:
-            for pos, (i, r) in enumerate(unused):
+        def take(agent: str) -> tuple[int, dict]:  # called within this turn only, so the closure is safe
+            for pos, (_, r) in enumerate(unused):  # noqa: B023
                 if r["agent"] == agent:
-                    return unused.pop(pos)
-            raise ValueError(f"{ep.cell_id} turn {k}: no trace record left for agent {agent!r}")
+                    return unused.pop(pos)  # noqa: B023
+            raise ValueError(f"{ep.cell_id} turn {k}: no trace record left for agent {agent!r}")  # noqa: B023
 
         events = list(enumerate(turn["events"]))
         # S1 logs "agent single" after the tool it requested: put the model call first.

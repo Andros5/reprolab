@@ -15,11 +15,17 @@ from __future__ import annotations
 
 import html
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 from reprolab.diff import (
-    DIFFERENT_CALL, DIFFERENT_REQUEST, LENGTH, SAME_REQUEST_DIFFERENT_OUTCOME, Divergence, _brief,
+    DIFFERENT_CALL,
+    DIFFERENT_REQUEST,
+    LENGTH,
+    SAME_REQUEST_DIFFERENT_OUTCOME,
+    Divergence,
+    _brief,
 )
 from reprolab.events import Event
 from reprolab.invariants import Violation
