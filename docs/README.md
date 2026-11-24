@@ -26,8 +26,6 @@
 - [CitaLab N-R02](investigations/citalab-r02.md): a reschedule request that created a new appointment, rebuilt from the logs.
 - [Swiss Job Radar](investigations/radar-submit.md): a real submission path under injected faults, without changing it.
 
-## Presenting the project
+## Demo video
 
-- [Pitch](interview/pitch.md): the project in 30 seconds and in 2 minutes.
-- [Demo script](interview/demo-script.md): a narrated live demo of about 3 minutes.
 - [Demo video source](../video/README.md): the 101-second motion piece, built from real runs.

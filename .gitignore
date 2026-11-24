@@ -16,3 +16,6 @@ video/public/score.wav
 video/sound/.venv/
 video/sound/__pycache__/
 video/sound/source/
+
+# Interview preparation stays local, never in the public repository.
+docs/interview/
